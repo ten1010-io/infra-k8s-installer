@@ -71,6 +71,7 @@ parse_params "$@"
 
 UBUNTU2204_SUPPORTED_MINOR_VERSION=5
 RHEL8_SUPPORTED_MINOR_VERSION=10
+RHEL9_SUPPORTED_MINOR_VERSION=7
 
 ki_env_path=""
 ki_env_scripts_path=""
@@ -103,6 +104,12 @@ main() {
     exit 0
   fi
 
+  if [[ $os_distribution = "rhel" && $os_major_version = "9" && $os_minor_version -le "$RHEL9_SUPPORTED_MINOR_VERSION" ]]; then
+    rhel9_configure
+    exit 0
+  fi
+
+
   die "[ERROR] OS not supported\n$os_info"
 }
 
@@ -115,6 +122,17 @@ ubuntu2204_configure() {
 }
 
 rhel8_configure() {
+  [[ $(getenforce) != "Disabled" ]] && setenforce 0
+  sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+  disable_swap
+  setup_modules
+  setup_kernel_parameters
+
+  return 0
+}
+
+rhel9_configure() {
   [[ $(getenforce) != "Disabled" ]] && setenforce 0
   sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 

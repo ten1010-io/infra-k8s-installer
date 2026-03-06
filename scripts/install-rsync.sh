@@ -71,6 +71,7 @@ parse_params "$@"
 
 UBUNTU2204_SUPPORTED_MINOR_VERSION=5
 RHEL8_SUPPORTED_MINOR_VERSION=10
+RHEL9_SUPPORTED_MINOR_VERSION=7
 
 KI_ENV_SCRIPTS_PATH="$ki_env_path"/scripts
 KI_ENV_BIN_PATH="$ki_env_path"/bin
@@ -98,6 +99,12 @@ main() {
     exit 0
   fi
 
+  if [[ $os_distribution = "rhel" && $os_major_version = "9" && $os_minor_version -le "$RHEL9_SUPPORTED_MINOR_VERSION" ]]; then
+    rhel9_setup
+    exit 0
+  fi
+
+
   die "[ERROR] OS not supported\n$os_info"
 }
 
@@ -119,6 +126,15 @@ rhel8_setup() {
   return 0
 }
 
+
+rhel9_setup() {
+  if [[ $(rhel9_is_installed rsync) = "false" ]]; then
+    rpm --force -Uvh --oldpackage --replacepkgs "$KI_ENV_BIN_PATH/linux-packages/rhel9/rsync/*.rpm"
+  fi
+
+  return 0
+}
+
 ubuntu2204_is_installed() {
   local pkg_regex=$1
 
@@ -131,6 +147,17 @@ ubuntu2204_is_installed() {
 }
 
 rhel8_is_installed() {
+  local pkg_regex=$1
+
+  local exit_code=0
+  yum list installed --disableplugin subscription-manager 2> /dev/null | grep "$pkg_regex" > /dev/null 2>/dev/null || exit_code=$?
+
+  if [[ $exit_code = "0" ]]; then echo "true"; else echo "false"; fi
+
+  return 0
+}
+
+rhel9_is_installed() {
   local pkg_regex=$1
 
   local exit_code=0

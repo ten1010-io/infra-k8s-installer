@@ -71,6 +71,7 @@ parse_params "$@"
 
 UBUNTU2204_SUPPORTED_MINOR_VERSION=5
 RHEL8_SUPPORTED_MINOR_VERSION=10
+RHEL9_SUPPORTED_MINOR_VERSION=7
 
 ki_env_path=""
 ki_env_scripts_path=""
@@ -105,6 +106,11 @@ main() {
 
   if [[ $os_distribution = "rhel" && $os_major_version = "8" && $os_minor_version -le "$RHEL8_SUPPORTED_MINOR_VERSION" ]]; then
     rhel8_uninstall
+    exit 0
+  fi
+
+  if [[ $os_distribution = "rhel" && $os_major_version = "9" && $os_minor_version -le "$RHEL9_SUPPORTED_MINOR_VERSION" ]]; then
+    rhel9_uninstall
     exit 0
   fi
 
@@ -188,6 +194,46 @@ rhel8_uninstall() {
 
   return 0
 }
+
+rhel9_uninstall() {
+  rm -f /etc/crictl.yaml
+
+  if [[ $("$ki_env_scripts_path/systemctl.sh" exists kubelet) = "true" ]]; then
+    yum erase -y --disableplugin subscription-manager \
+      kubeadm \
+      kubectl \
+      kubelet \
+      cri-tools \
+      kubernetes-cni
+  fi
+
+  if [[ $("$ki_env_scripts_path/systemctl.sh" exists docker) = "true" ]]; then
+    yum erase -y --disableplugin subscription-manager \
+      nvidia-container-toolkit \
+      nvidia-container-toolkit-base \
+      libnvidia-container1 \
+      libnvidia-container-tools
+
+    yum erase -y --disableplugin subscription-manager \
+      docker-ce \
+      docker-ce-cli \
+      docker-buildx-plugin \
+      docker-compose-plugin
+  fi
+  rm -f /etc/docker/daemon.json
+  rm -rf "$docker_root_path"
+
+  if [[ $("$ki_env_scripts_path/systemctl.sh" exists containerd) = "true" ]]; then
+    yum erase -y --disableplugin subscription-manager \
+      containerd.io
+  fi
+  rm -rf "$containerd_root_path"
+
+  systemctl daemon-reload
+
+  return 0
+}
+
 
 import_ki_env_vars() {
   ki_env_path=$(grep -oP  "^ki_env_path: \K(.+)" < "$vars_path")
