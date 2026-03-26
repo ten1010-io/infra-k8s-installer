@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Step 1: GitHub로부터 코드를 성공적으로 가져왔습니다.'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo 'Step 2: 빌드 공정을 시작합니다. (현재는 샘플 호출만 수행)'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Step 3: 유닛 테스트를 수행 중입니다...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Step 4: 배포 서버로 전송을 완료했습니다!'
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '🎉 모든 빌드 절차가 성공적으로 끝났습니다!'
+        }
+        failure {
+            echo '❌ 빌드 중 에러가 발생했습니다. 로그를 확인하세요.'
+        }
+    }
+}
