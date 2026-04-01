@@ -1,10 +1,26 @@
 monitoring_service_values_path: "{{ ki_env_scripts_path }}/ki-cp-node/services/monitoring/values.yaml"
 
+monitoring_image_registry: "registry.ten1010.io:8443/aipub-4.5.0"
+
+monitoring_elasticsearch_storage_size: "3Ti"
+monitoring_elasticsearch_log_retention: "180d"
+monitoring_metrics_storage_size: "1Ti"
+monitoring_metrics_retention_period: "180d"
+
 monitoring_victoria_metrics_release_count: 2
+monitoring_elasticsearch_minimum_master_nodes: 2
 
 monitoring_storage_type: "dynamic"
 monitoring_storage_static_type: "local"
 monitoring_storage_class_name: "ontap-nas"
 monitoring_nfs_server: "nfs.example.com"
 
-monitoring_image_registry: "registry.ten1010.io:8443/aipub-4.5.0"
+monitoring_elasticsearch_local_path: "/aipub/pv/elasticsearch/es_data"
+monitoring_victoria_metrics_local_path_prefix: "/aipub/pv/promstack/vm_data"
+monitoring_notice_board_api_local_path: "/aipub/pv/aipub-notice-board-api/staticfiles"
+monitoring_report_local_path: "/aipub/pv/aipub-report/cache"
+
+monitoring_elasticsearch_nfs_export: "/exports/aipub/elasticsearch"
+monitoring_victoria_metrics_nfs_export: "/exports/aipub/promstack"
+monitoring_notice_board_api_nfs_export: "/exports/aipub/aipub-notice-board-api"
+monitoring_report_nfs_export: "/exports/aipub/aipub-report"

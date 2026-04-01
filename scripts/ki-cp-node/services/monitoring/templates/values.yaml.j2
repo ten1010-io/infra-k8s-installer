@@ -1,54 +1,104 @@
 # =============================================================================
-# Storage Strategy — 설치 시 이 블록만 수정하세요
+# Site Configuration — 설치 시 이 블록만 수정하세요
 # =============================================================================
+
+# 1. 이미지 레지스트리
+# -----------------------------------------------------------------------------
+imageRegistry: &image_registry "{{ monitoring_image_registry }}"
+
+# 2. 스토리지 용량 및 데이터 보관 기간
+# -----------------------------------------------------------------------------
+_elasticsearchStorageSize: &elasticsearch_storage_size "{{ monitoring_elasticsearch_storage_size }}"
+_elasticsearchLogRetention: &elasticsearch_log_retention_days {{ monitoring_elasticsearch_log_retention }}
+_metricsStorageSize: &metrics_storage_size "{{ monitoring_metrics_storage_size }}"
+_metricsRetentionPeriod: &metrics_retention_period "{{ monitoring_metrics_retention_period }}"
+
+# 3. HA 구성
+# -----------------------------------------------------------------------------
+#   HA:     cpNodeCount=3, victoriaMetricsReleaseCount=2, elasticsearchMinimumMasterNodes=2
+#   Non-HA: cpNodeCount=1, victoriaMetricsReleaseCount=1, elasticsearchMinimumMasterNodes=1
 #
-# type: 전체 컴포넌트에 적용되는 스토리지 방식
-#   "dynamic" - StorageClass 기반 자동 프로비저닝
-#   "static"  - 직접 PV를 생성 (local 또는 nfs)
-#
-# dynamic.storageClassName: dynamic 방식 사용 시 StorageClass 이름
-#
-# static.type: static 방식 사용 시 볼륨 종류
-#   "local" - 노드 로컬 디스크
-#   "nfs"   - NFS 서버
-#
-# static.nfs.server: nfs 방식 사용 시 NFS 서버 주소
-#
-# =============================================================================
-# Cluster Nodes — 설치 시 이 블록만 수정하세요
-# =============================================================================
-#
-# static+local 스토리지 사용 시 각 PV의 nodeAffinity에 적용됩니다.
-# cp1부터 순서대로 컴포넌트 배열 항목과 1:1 매칭됩니다.
-#
+_scale:
+  cpNodeCount: &cp_node_count {{ aipub_cp_nodes | length }}
+  victoriaMetricsReleaseCount: &victoria_metrics_release_count {{ monitoring_victoria_metrics_release_count }}
+  elasticsearchMinimumMasterNodes: &elasticsearch_minimum_master_nodes {{ monitoring_elasticsearch_minimum_master_nodes }}
+
+{% set vm_letters = ['a', 'b'] %}
+_vmsingleUrlsWithPort: &vm_stack_vmsingle_urls_with_port
+{% for i in range(monitoring_victoria_metrics_release_count) %}
+  - "http://victoria-metrics-single-{{ vm_letters[i] }}-server.aipub-promstack.svc:8428"
+{% endfor %}
+
+_vmsingleObjects: &vm_stack_vmsingle_objects
+{% for i in range(monitoring_victoria_metrics_release_count) %}
+  - url: "http://victoria-metrics-single-{{ vm_letters[i] }}-server.aipub-promstack.svc:8428/api/v1/write"
+{% endfor %}
+
+# 4. 스토리지 — 해당하는 방식의 값만 설정하세요
+# -----------------------------------------------------------------------------
+_storageType: &_storage_type "{{ monitoring_storage_type }}"
+_storageClassName: &_storage_class_name "{{ monitoring_storage_class_name }}"
+_storageStaticType: &_storage_static_type "{{ monitoring_storage_static_type }}"
+_nfsServer: &_nfs_server "{{ monitoring_nfs_server }}"
+
 _nodes:
 {% for node in aipub_cp_nodes %}
   - &cp{{ loop.index }} "{{ node }}"
 {% endfor %}
 
-# =============================================================================
-# Scale — 설치 시 이 블록만 수정하세요
-# =============================================================================
-#
-# cpNodeCount             : cp 노드 수. _nodes 배열 길이와 일치해야 합니다.
-#                           elasticsearch / alertmanager / linkerd에 공통 적용됩니다.
-# victoriaMetricsReleaseCount: vmsingle a/b 인스턴스 수. HA 시 2, 단일 시 1.
-#                             static+local일 때 local 배열 항목 수와 일치해야 합니다.
-#
-_scale:
-  cpNodeCount: &cp_node_count {{ aipub_cp_nodes | length }}
-  victoriaMetricsReleaseCount: &victoria_metrics_release_count {{ monitoring_victoria_metrics_release_count }}
+# 5. 컴포넌트별 스토리지 경로 — 스토리지 방식에 따라 해당 항목만 설정하세요
+# -----------------------------------------------------------------------------
+_elasticsearchLocal: &elasticsearch_local
+{% for node in aipub_cp_nodes %}
+  - path: "{{ monitoring_elasticsearch_local_path }}"
+    nodeSelector:
+      kubernetes.io/hostname: *cp{{ loop.index }}
+{% endfor %}
 
-_storageType: &_storage_type "{{ monitoring_storage_type }}"            # "static" 또는 "dynamic"
-_storageStaticType: &_storage_static_type "{{ monitoring_storage_static_type }}" # "local" 또는 "nfs" (static 시에만 사용)
-_storageClassName: &_storage_class_name "{{ monitoring_storage_class_name }}"
-_nfsServer: &_nfs_server "{{ monitoring_nfs_server }}"
+_victoriaMetricsLocal: &victoria_metrics_local
+{% for i in range(monitoring_victoria_metrics_release_count) %}
+  - path: "{{ monitoring_victoria_metrics_local_path_prefix }}{{ i + 1 }}"
+    nodeSelector:
+      kubernetes.io/hostname: *cp{{ i + 1 }}
+{% endfor %}
 
+_noticeBoardApiLocal: &notice_board_api_local
+  path: "{{ monitoring_notice_board_api_local_path }}"
+  nodeSelector:
+    - kubernetes.io/hostname: *cp1
+
+_reportLocal: &report_local
+  path: "{{ monitoring_report_local_path }}"
+  nodeSelector:
+    - kubernetes.io/hostname: *cp1
+
+_elasticsearchNfs: &elasticsearch_nfs
+{% for i in range(aipub_cp_nodes | length) %}
+  - server: *_nfs_server
+    export: "{{ monitoring_elasticsearch_nfs_export }}"
+    subPath: "/es_data{{ i + 1 }}"
+{% endfor %}
+
+_victoriaMetricsNfs: &victoria_metrics_nfs
+{% for i in range(monitoring_victoria_metrics_release_count) %}
+  - server: *_nfs_server
+    export: "{{ monitoring_victoria_metrics_nfs_export }}"
+    subPath: "vm_data{{ i + 1 }}"
+{% endfor %}
+
+_noticeBoardApiNfs: &notice_board_api_nfs
+  server: *_nfs_server
+  export: "{{ monitoring_notice_board_api_nfs_export }}"
+  subPath: "staticfiles1"
+
+_reportNfs: &report_nfs
+  server: *_nfs_server
+  export: "{{ monitoring_report_nfs_export }}"
+  subPath: "cache1"
 
 # =============================================================================
 # Monitoring Infrastructure Values
 # =============================================================================
-imageRegistry: &image_registry "{{ monitoring_image_registry }}"
 
 infra:
   aipub_monitoring_tool_version: &aipub_monitoring_tool_version "v0.1.4"
@@ -65,36 +115,18 @@ infra:
 
     elasticsearch:
       replicas: *cp_node_count
-      minimumMasterNodes: &elasticsearch_minimum_master_nodes 2
+      minimumMasterNodes: *elasticsearch_minimum_master_nodes
       roleName: "aipub_role"
-      logRetention: &elasticsearch_log_retention_days 180d  # Log retention period for kube-log-* and kube-event-* indices
+      logRetention: *elasticsearch_log_retention_days
       storageProvisioning:
-        size: &elasticsearch_storage_size "3Ti"
+        size: *elasticsearch_storage_size
         type: *_storage_type            # Options: "static" or "dynamic"
         dynamic:
           storageClassName: *_storage_class_name
         static:
           type: *_storage_static_type  # Options: "local" or "nfs"
-          local:
-            - path: "/aipub/pv/elasticsearch/es_data"
-              nodeSelector:
-                kubernetes.io/hostname: *cp1
-            - path: "/aipub/pv/elasticsearch/es_data"
-              nodeSelector:
-                kubernetes.io/hostname: *cp2
-            - path: "/aipub/pv/elasticsearch/es_data"
-              nodeSelector:
-                kubernetes.io/hostname: *cp3
-          nfs:
-            - server: *_nfs_server
-              export: "/exports/aipub/elasticsearch"
-              subPath: "/es_data1"
-            - server: *_nfs_server
-              export: "/exports/aipub/elasticsearch"
-              subPath: "/es_data2"
-            - server: *_nfs_server
-              export: "/exports/aipub/elasticsearch"
-              subPath: "/es_data3"
+          local: *elasticsearch_local
+          nfs: *elasticsearch_nfs
       clusterHealthCheckParams: &elasticsearch_cluster_health_check_params "wait_for_status=yellow&timeout=10s"
 
     kibana:
@@ -142,22 +174,8 @@ infra:
         storageClassName: *_storage_class_name
       static:
         type: *_storage_static_type  # Options: "local" or "nfs"
-        local:
-          # Add a number of items equal to the replicas count
-          - path: "/aipub/pv/promstack/vm_data1"
-            nodeSelector:
-              kubernetes.io/hostname: *cp1
-          - path: "/aipub/pv/promstack/vm_data2"
-            nodeSelector:
-              kubernetes.io/hostname: *cp2
-        nfs:
-          # Add a number of items equal to the replicas count
-          - server: *_nfs_server
-            export: "/exports/aipub/promstack"
-            subPath: "vm_data1"
-          - server: *_nfs_server
-            export: "/exports/aipub/promstack"
-            subPath: "vm_data2"
+        local: *victoria_metrics_local
+        nfs: *victoria_metrics_nfs
     # Common scrape/collection intervals for exporters and collectors.
     # node-info-exporter is managed separately below.
     commonExporterIntervalPrometheus: &common_exporter_interval 15s
@@ -165,11 +183,10 @@ infra:
     commonExporterIntervalMilliseconds: &common_exporter_interval_milliseconds "15000"
     nodeInfoExporterScrapeInterval: &node_info_exporter_scrape_interval 300s
     vmsingle:
-      storageSize: &metrics_storage_size "1Ti"
-      retentionPeriod: &metrics_retention_period "180d"
+      storageSize: *metrics_storage_size
+      retentionPeriod: *metrics_retention_period
       replicaCount: &metrics_server_replicas 1
       releaseCount: *victoria_metrics_release_count  # Number of vmsingle releases installed (a/b)
-      createClaims: false  # Pre-create PVCs bound to PVs for each release
       existingClaimPrefix: "aipub-vmstack-vmsingle-pvc"
       port: &metrics_server_port "8428"
     endpoints:
@@ -178,12 +195,8 @@ infra:
       metricsServerWriteUrl: &metrics_server_write_url "http://vmagent-vmstack-vmagent.aipub-promstack.svc:8429/api/v1/write"
       metricsServiceName: &metrics_service_name "vmauth-vmstack-vmauth"
       metricsServicePort: &metrics_service_port "8427"
-      vmsingleUrlsWithPort: &vm_stack_vmsingle_urls_with_port
-        - "http://victoria-metrics-single-a-server.aipub-promstack.svc:8428"
-        - "http://victoria-metrics-single-b-server.aipub-promstack.svc:8428"
-      vmsingleObjects: &vm_stack_vmsingle_objects
-        - url: "http://victoria-metrics-single-a-server.aipub-promstack.svc:8428/api/v1/write"
-        - url: "http://victoria-metrics-single-b-server.aipub-promstack.svc:8428/api/v1/write"
+      vmsingleUrlsWithPort: *vm_stack_vmsingle_urls_with_port
+      vmsingleObjects: *vm_stack_vmsingle_objects
 
   exporters:
     nodeInfoExporter:
@@ -225,14 +238,8 @@ apps:
       accessMode: &aipub_notice_board_api_storage_access_mode "ReadWriteMany"  # ReadWriteOnce or ReadWriteMany
       static:
         type: *_storage_static_type  # Options: "local" or "nfs"
-        local: &aipub_notice_board_api_storage_local
-          path: "/aipub/pv/aipub-notice-board-api/staticfiles"  # host path in the node
-          nodeSelector:
-            - kubernetes.io/hostname: *cp1
-        nfs: &aipub_notice_board_api_storage_nfs
-          server: *_nfs_server
-          export: "/exports/aipub/aipub-notice-board-api"
-          subPath: "staticfiles1"
+        local: *notice_board_api_local
+        nfs: *notice_board_api_nfs
       dynamic:
         storageClassName: *_storage_class_name
 
@@ -263,14 +270,8 @@ apps:
         storageClassName: *_storage_class_name
       static:
         type: *_storage_static_type  # Options: "local" or "nfs"
-        local: &aipub_report_storage_local
-          path: "/aipub/pv/aipub-report/cache"  # host path in the node
-          nodeSelector:
-            - kubernetes.io/hostname: *cp1
-        nfs: &aipub_report_storage_nfs
-          server: *_nfs_server
-          export: "/exports/aipub/aipub-report"
-          subPath: "cache1"
+        local: *report_local
+        nfs: *report_nfs
 
   aipubMonitoring:
     basePath: &aipub_monitoring_base_path "/streamlit"
