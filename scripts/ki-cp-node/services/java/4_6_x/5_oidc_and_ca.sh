@@ -20,16 +20,7 @@ BACKUP_FILE="${BACKUP_DIR}/kube-apiserver.yaml.$(date +%Y%m%d_%H%M%S).bak"
 WEBHOOK_FILE="../templates/webhook-token-auth.yaml"
 
 # yq
-YQ_COMMAND=""
-
-if [ -f "../bin/yq" ]; then
-    YQ_COMMAND="../bin/yq"
-elif [ -f "./yq" ]; then
-    YQ_COMMAND="./yq"
-else
-    log_error "실행 가능한 yq 바이너리를 찾을 수 없습니다. ../bin/yq 또는 ./yq 위치를 확인하세요."
-    exit 1
-fi
+YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
 
 
 # 원격 실행 변수
@@ -157,10 +148,10 @@ execute_remote() {
     scp $scp_opts ${WEBHOOK_FILE} ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
 
     log_info "yq 파일을 원격 호스트로 복사 중..."
-    scp $scp_opts ../bin/yq ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
+    scp $scp_opts "${KI_ENV_BIN_PATH}/yq" ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
 
     log_info "jq 파일을 원격 호스트로 복사 중..."
-    scp $scp_opts ../bin/jq ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
+    scp $scp_opts "${KI_ENV_BIN_PATH}/jq" ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
 
     # 현재 디렉토리 또는 /etc/kubernetes/pki/에서 aipub-ca.crt 확인
     local ca_cert_path=""

@@ -12,8 +12,10 @@ declare -r PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 declare -r LOG_FILE="${SCRIPT_DIR}/$(date +%Y%m%d)_uninstall.log"
 
 # Binary paths
-declare -r YQ="${PROJECT_ROOT}/bin/yq_linux_amd64"
-declare -r JQ="${PROJECT_ROOT}/bin/jq-linux-amd64"
+declare -r KI_ENV_PATH="/var/lib/ki-env"
+declare -r KI_ENV_BIN_PATH="${KI_ENV_PATH}/bin/bin"
+declare -r YQ="${KI_ENV_BIN_PATH}/yq"
+declare -r JQ="${KI_ENV_BIN_PATH}/jq-linux-amd64"
 
 # Chart directories
 declare -r CHART_DIR="${PROJECT_ROOT}"
@@ -212,7 +214,7 @@ uninstall_linkerd() {
         return 0
     fi
 
-    local linkerd_cli="${PROJECT_ROOT}/bin/linkerd2-cli-stable-2.14.6-linux-amd64"
+    local linkerd_cli="${KI_ENV_BIN_PATH}/linkerd2-cli-stable-2.14.6-linux-amd64"
     if [ ! -f "$linkerd_cli" ]; then
         log_error "Linkerd CLI not found at: $linkerd_cli"
         return 1

@@ -8,7 +8,7 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
-YQ_COMMAND="../bin/yq"
+YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
 
 #==============================================================================
 # Configuration

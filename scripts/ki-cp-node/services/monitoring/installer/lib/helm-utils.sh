@@ -4,7 +4,7 @@
 # Helm Utilities
 # =============================================================================
 
-declare -r HELM="${PROJECT_ROOT}/bin/helm-amd64"
+declare -r HELM="${KI_ENV_BIN_PATH}/helm-amd64"
 
 # =============================================================================
 # Helm Installation Functions

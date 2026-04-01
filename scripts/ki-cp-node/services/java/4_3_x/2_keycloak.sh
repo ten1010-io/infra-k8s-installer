@@ -8,8 +8,8 @@ set -e  # Exit on error
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
-JQ_COMMAND="../bin/jq"
-YQ_COMMAND="../bin/yq"
+JQ_COMMAND="${KI_ENV_BIN_PATH}/jq"
+YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
 
 # --config 인수 파싱 및 파일 확인
 parse_config_arg "$@"

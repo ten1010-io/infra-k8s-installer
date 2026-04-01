@@ -12,8 +12,8 @@ set -euo pipefail  # Exit on error, undefined variables, pipe failures
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/common.sh"
 
-JQ_COMMAND="../bin/jq"
-YQ_COMMAND="../bin/yq"
+JQ_COMMAND="${KI_ENV_BIN_PATH}/jq"
+YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
 
 # 에러 핸들링 등록
 trap cleanup_on_error EXIT
