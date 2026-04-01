@@ -1,0 +1,13 @@
+datadog:
+  datadog:
+    site: ap1.datadoghq.com
+    apiKeyExistingSecret: datadog-api-key
+    kubelet:
+      tlsVerify: false
+    apm:
+      enabled: true
+      nonLocalTraffic: true
+    logs:
+      enabled: true
+  agents:
+    enabled: true

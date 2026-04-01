@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-user-proxy
+  name: oauth2-uesr-proxy
+  namespace: efk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-user-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-user-proxy
+    spec:
+      containers:
+      - args:
+        - --alpha-config
+        - "/alpha/config.yaml"
+        - --email-domain=*
+        - --ssl-insecure-skip-verify=true
+        - --cookie-csrf-per-request=true
+        - --cookie-csrf-expire=5m
+        - --cookie-samesite=lax
+        - --cookie-secure=false #NodePort(HTTP)로 접근하는 경우 false로 설정.
+        - --cookie-refresh=5m
+        - --session-store-type=cookie
+        - --cookie-samesite=lax
+        - --reverse-proxy=true
+        - --skip-provider-button=true
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.7.0
+        envFrom:
+        - secretRef:
+            name: keycloak-kibana-client
+        env:
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: FApM8bW-JK_a0y0DLm45miuvohvAFl6X8b7NZt9AQz8=
+        imagePullPolicy: Always
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        volumeMounts:
+        - name: keycloak-ca-cert
+          mountPath: /etc/ssl/certs/keycloak-ca.crt
+          subPath: ca.crt
+        - name: config
+          mountPath: /alpha
+          readOnly: true
+      volumes:
+      - name: keycloak-ca-cert
+        configMap:
+          name: keycloak-ca-cert
+      - name: config
+        configMap:
+          name: oauth2-proxy-user-alpha-config
+          items:
+          - key: config.yaml
+            path: config.yaml    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-user-proxy
+  name: oauth2-user-proxy
+  namespace: efk
+spec:
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+    targetPort: 4180
+  selector:
+    k8s-app: oauth2-user-proxy
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oauth2-user-proxy
+  namespace: efk
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "24k"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      location /logout {
+        return 302 https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/logout?post_logout_redirect_uri=https://kibana-user.cluster9.idc1.ten1010.io/oauth2/sign_out&client_id=kibana;
+      }
+      location /oauth2/sign_in {
+        return 302 https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/logout?post_logout_redirect_uri=https://kibana-user.cluster9.idc1.ten1010.io/oauth2/sign_out&client_id=kibana;
+      }      
+spec:
+  ingressClassName: lb1
+  rules:
+  - host: kibana-user.cluster9.idc1.ten1010.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: oauth2-user-proxy
+            port:
+              number: 4180
+  tls:
+  - hosts:
+    - kibana-user.cluster9.idc1.ten1010.io
+    secretName: kibana-user-tls

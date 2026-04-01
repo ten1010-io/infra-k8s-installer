@@ -1,0 +1,136 @@
+replicaCount: 1
+
+image:
+  repository: vnode2.pnode1.idc1.ten1010.io:8443/aipub-ops-4.0.0/aipub-backend-gateway
+  pullPolicy: Always
+  tag: "0.0.0-SNAPSHOT"
+
+imagePullSecrets:
+  - name: harbor-java
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-gateway.logs: '[{"source": "java", "service": "aipub-backend-gateway"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: { }
+
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 8080
+  timeoutSeconds: 1
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 8080
+  timeoutSeconds: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+  - name: java-agents
+    hostPath:
+      path: /opt/aipub/agents
+      type: Directory
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+  - mountPath: /opt/aipub/agents
+    name: java-agents
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  grpc:
+    client:
+      backendApi:
+        address: dns:///aipub-backend-api.aipub.svc.cluster.local:9090
+      backendUsage:
+        address: dns:///aipub-backend-usage.aipub.svc.cluster.local:9090
+  spring:
+    profiles:
+      active: production
+    web:
+      resources:
+        addMappings: "false"
+  app:
+    jwt:
+      secretKey: P55Adx22JvTuhlXewRBY7BPNIQFoqQqj
+    application:
+      type: BACKEND_GATEWAY
+      id: backend-gateway
+    cookie:
+      domain: ".cluster6.idc1.ten1010.io"
+    web:
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+      security:
+        allowedOrigins_0: https://aipub.cluster6.idc1.ten1010.io
+        allowedOrigin: https://aipub.cluster6.idc1.ten1010.io
+        basicAuth:
+          user:
+            username: "testuser"
+            password: "asdasdasd"
+            role: "aipub-admin"
+  logging:
+    level:
+      orgSpringframeworkWeb: info
+
+agent:
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-gateway"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

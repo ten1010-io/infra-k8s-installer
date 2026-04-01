@@ -1,0 +1,40 @@
+{
+  "namespace": "aipub",
+  "keycloak": {
+    "realm_name": "aipub",
+    "client_id": "k8s"
+  },
+  "agent": {
+    "datadog": false
+  },
+  "version": {
+    "aipub_version": "v4.3.0",
+    "image_base": "ki-cp.ki.local:5001/aipub-4.3.0",
+    "api_tag": "1.3.2",
+    "usage_tag": "1.3.2",
+    "gateway_tag": "1.3.2",
+    "batch_tag": "1.3.2",
+    "adapter_tag": "1.3.2",
+    "frontend_tag": "1.20.1-jnu",
+    "project_controller": "vanilla-1.0.3"
+  },
+  "domain": {
+    "aipub_domain": "aipub.jnu.ac.kr",
+    "aipub_host_prefix": "main",
+    "keycloak_host_prefix": "keycloak",
+    "harbor_host_prefix": "harbor"
+  },
+  "application": {
+    "api_profiles": "batch",
+    "api_flyway": true,
+    "ssh_port_min": "1024",
+    "ssh_port_max": "65535",
+    "volumes": [
+      {"type": "nfs", "value": "nfs"},
+      {"type": "storageclass", "value": "ontap-nas"}
+    ]
+  },
+  "ingress": {
+    "tls_secret_name": "aipub-backend-adapter-tls"
+  }
+}

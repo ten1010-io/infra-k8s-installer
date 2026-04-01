@@ -1,0 +1,2560 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "iteration": 1751631848416,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "panels": [],
+      "title": "요약",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(33, 33, 33)",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 108,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (label_workspaces_aipub_ten1010_io_owner) (\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n)",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{workspace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Workspace",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "valueLabel": "label_workspaces_aipub_ten1010_io_owner"
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(127, 127, 127)",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 0,
+        "y": 3
+      },
+      "id": 98,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "aipub_workspace_info{project=\"$namespace\", workspace=\"$workspace\"}",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{project}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Project",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "False",
+              "to": "",
+              "type": 1,
+              "value": "0"
+            },
+            {
+              "from": "",
+              "id": 2,
+              "text": "True",
+              "to": "",
+              "type": 1,
+              "value": "1"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 4,
+        "y": 3
+      },
+      "id": 106,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "aipub_workspace_ready_condition{project=\"$namespace\", workspace=\"$workspace\"}",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Ready",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "False",
+              "to": "",
+              "type": 1,
+              "value": "0"
+            },
+            {
+              "from": "",
+              "id": 2,
+              "text": "True",
+              "to": "",
+              "type": 1,
+              "value": "1"
+            }
+          ],
+          "noValue": "False",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(127, 127, 127)",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 3
+      },
+      "id": 90,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "aipub_workspace_spec_suspend{project=\"$namespace\", workspace=\"$workspace\"}",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Suspend",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(127, 127, 127)",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 12,
+        "y": 3
+      },
+      "id": 119,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum (\n  kube_pod_labels{label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n  * on (namespace, pod, uid) group_left(phase, condition)\n  (kube_pod_status_phase{phase=\"Pending\"} == 1)\n) or vector(0)",
+          "format": "time_series",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "Pending",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum (\n  kube_pod_labels{label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n  * on (namespace, pod, uid) group_left(phase, condition)\n  (kube_pod_status_phase{phase=\"Running\"} == 1)\n  * on (namespace, pod, uid) group_left(condition)\n  (kube_pod_status_ready{condition=\"false\"} == 1)\n) or vector(0)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Progressing",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum (\n  kube_pod_labels{label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n  * on (namespace, pod, uid) group_left(phase, condition)\n  (kube_pod_status_phase{phase=\"Running\"} == 1)\n  * on (namespace, pod, uid) group_left(condition)\n  (kube_pod_status_ready{condition=\"true\"} == 1)\n) or vector(0)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Ready",
+          "refId": "C"
+        }
+      ],
+      "title": "Pod Conditions",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(127, 127, 127)",
+                "value": null
+              }
+            ]
+          },
+          "unit": "dtdurations"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 104,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "time() - aipub_workspace_created{project=\"$namespace\", workspace=\"$workspace\"}",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Age",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "True",
+              "to": "",
+              "type": 1,
+              "value": "true"
+            },
+            {
+              "from": "",
+              "id": 2,
+              "text": "False",
+              "to": "",
+              "type": 1,
+              "value": "false"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "node"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Node"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pod"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Pod"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "condition"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Ready"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reason"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Reason"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pod"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 5
+      },
+      "id": 88,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "kube_pod_container_info{namespace=\"$namespace\", pod=\"$pod\"}",
+          "format": "table",
+          "hide": true,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "kube_pod_info{namespace=\"$namespace\"}\n* on (namespace, pod, uid) group_left(label_workspaces_aipub_ten1010_io_owner)\nkube_pod_labels{label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n* on (namespace, pod, uid) group_left(condition)\n(kube_pod_status_ready{namespace=\"$namespace\"} == 1)\n* on (namespace, pod, uid) group_left(reason)\n(\n  kube_pod_container_status_running{\n    namespace=\"$namespace\", container=~\"$workspace.*\"\n  } == 1\n  or\n  on (namespace, pod, uid) kube_pod_container_status_waiting_reason{\n    namespace=\"$namespace\", container=~\"$workspace.*\"\n  } == 1\n  or\n  on (namespace, pod, uid) kube_pod_container_status_waiting_reason{\n    namespace=\"$namespace\", container=~\"$workspace.*\"\n  } == 1\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "Pods",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "container": true,
+              "container_id": true,
+              "created_by_kind": true,
+              "created_by_name": true,
+              "endpoint": true,
+              "host_ip": true,
+              "host_network": true,
+              "image_id": true,
+              "image_spec": true,
+              "instance": true,
+              "job": true,
+              "label_workspaces_aipub_ten1010_io_owner": true,
+              "namespace": true,
+              "node": true,
+              "pod": false,
+              "pod_ip": true,
+              "service": true,
+              "uid": true
+            },
+            "indexByName": {
+              "Time": 0,
+              "Value": 18,
+              "condition": 16,
+              "container": 1,
+              "created_by_kind": 2,
+              "created_by_name": 3,
+              "endpoint": 4,
+              "host_ip": 5,
+              "host_network": 6,
+              "instance": 7,
+              "job": 8,
+              "label_workspaces_aipub_ten1010_io_owner": 9,
+              "namespace": 10,
+              "node": 11,
+              "pod": 12,
+              "pod_ip": 13,
+              "reason": 17,
+              "service": 14,
+              "uid": 15
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "pod"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Hostname"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Node"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gpu"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "GPU Index"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "modelName"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "GPU Model"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU_I_PROFILE"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MIG Profile"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU_I_ID"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "MIG Instance Index"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Allocated"
+              },
+              {
+                "id": "decimals"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exported_pod"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Pod"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 16,
+        "x": 8,
+        "y": 5
+      },
+      "id": 110,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, modelName, exported_namespace, exported_pod) (\n  label_replace(\n    GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", UUID=~\"GPU.*\"}\n    * on (exported_namespace, exported_pod) group_left()\n    label_replace(\n      label_replace(\n        kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n        * on (namespace, pod) group_left()\n        (kube_pod_status_ready{namespace=\"$namespace\", condition=\"true\"} == 1)\n        , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n      ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n    )\n    , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n  )\n)\n* on (Hostname, gpu, UUID, GPU_I_ID) group_left(device, modelName)\nsgn(gpu:resource:gpu_temp)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod) (\n  MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n  * on (exported_namespace, exported_pod) group_left()\n  label_replace(\n    label_replace(\n      kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n      * on (namespace, pod) group_left()\n      (kube_pod_status_ready{namespace=\"$namespace\", condition=\"true\"} == 1)\n      , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n    ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n  )\n)\n* on(Hostname, gpu, UUID, GPU_I_ID) group_left(device, modelName, GPU_I_PROFILE)\nsgn(gpu:resource:gpu_temp)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Workspace 할당 GPU / MIG 인스턴스",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Hostname": false,
+              "MIG_UUID": true,
+              "Time": true,
+              "UUID": true,
+              "Value": false,
+              "container": true,
+              "device": true,
+              "endpoint": true,
+              "exported_Hostname": true,
+              "exported_namespace": true,
+              "instance": true,
+              "job": true,
+              "namespace": true,
+              "pci_bus_id": true,
+              "pod": true,
+              "service": true
+            },
+            "indexByName": {
+              "Hostname": 1,
+              "Time": 2,
+              "UUID": 5,
+              "Value": 8,
+              "device": 6,
+              "exported_namespace": 7,
+              "exported_pod": 0,
+              "gpu": 3,
+              "modelName": 4
+            },
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "exported_pod"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 64,
+      "panels": [],
+      "title": "시스템",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "hiddenSeries": false,
+      "id": 66,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:1563",
+          "alias": "requests",
+          "color": "#8AB8FF",
+          "hideTooltip": true,
+          "legend": true,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:1564",
+          "alias": "limits",
+          "color": "#E02F44",
+          "hideTooltip": true,
+          "legend": true,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod) (\n  rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", image!=\"\"}[5m])\n  * on (namespace, pod) group_left()\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "CPU Utilization",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3096",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3097",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "hiddenSeries": false,
+      "id": 68,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:3831",
+          "alias": "requests",
+          "color": "#8AB8FF",
+          "hideTooltip": true,
+          "legend": true,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:3832",
+          "alias": "limits",
+          "color": "#E02F44",
+          "hideTooltip": true,
+          "legend": true,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod) (\n  container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", image!=\"\"}\n  * on(namespace, pod) group_left(label_workspaces_aipub_ten1010_io_owner)\r\r\n  kube_pod_labels{namespace=~\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n)\r\n\r",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Memory Utilization",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3656",
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3657",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 20
+      },
+      "hiddenSeries": false,
+      "id": 86,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "gpu:resource:gpu_temp\n* on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\nsgn(\n  sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod) (\n    label_replace(\n      GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n      , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n    )\n  )\n)\nor\ngpu:resource:gpu_temp\n* on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\nsgn(\n  sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod) (\n    MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n    * on (exported_namespace, exported_pod) group_left()\n    label_replace(\n      label_replace(\n        kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n        , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n      ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Temperature",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "celsius",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU  전력 소모량",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 20
+      },
+      "hiddenSeries": false,
+      "id": 80,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:power\n  * on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod, exported_container) (\n      label_replace(\n        GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n        * on (exported_namespace, exported_pod) group_left()\n        label_replace(\n          label_replace(\n            kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n            , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n          ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n        )\n        , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n      )\n    )\n  )\n)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:power\n  * on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod, exported_container) (\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "E"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Power Usage",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "watt",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 27
+      },
+      "hiddenSeries": false,
+      "id": 112,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:util\n  * on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod, exported_container) (\n      label_replace(\n        GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n        * on (exported_namespace, exported_pod) group_left()\n        label_replace(\n          label_replace(\n            kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n            , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n          ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n        )\n        , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n      )\n    )\n  )\n)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:util\n  * on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod, exported_container) (\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:772",
+          "format": "percent",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:773",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "연산 자원의 공간 활용도",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 27
+      },
+      "hiddenSeries": false,
+      "id": 85,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:sm_active\n  * on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod, exported_container) (\n      label_replace(\n        GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n        * on (exported_namespace, exported_pod) group_left()\n        label_replace(\n          label_replace(\n            kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n            , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n          ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n        )\n        , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n      )\n    )\n  )\n)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:sm_active\n  * on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod, exported_container) (\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "E"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "SM Active",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU의 연산자원 중 텐서코어의 활용도",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 27
+      },
+      "hiddenSeries": false,
+      "id": 84,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:tensor_core\n  * on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod, exported_container) (\n      label_replace(\n        GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n        * on (exported_namespace, exported_pod) group_left()\n        label_replace(\n          label_replace(\n            kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n            , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n          ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n        )\n        , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n      )\n    )\n  )\n)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:tensor_core\n  * on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod, exported_container) (\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "E"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Tensor Core Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU 메모리의 읽고 쓰기 시간을 합한 시간의 비율 \n(GPU Memory bandwidth)",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 34
+      },
+      "hiddenSeries": false,
+      "id": 83,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:dram_active\n  * on (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE) group_right(modelName)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, exported_namespace, exported_pod, exported_container) (\n      label_replace(\n        GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\"}\n        * on (exported_namespace, exported_pod) group_left()\n        label_replace(\n          label_replace(\n            kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n            * on (namespace, pod) group_left()\n            (kube_pod_status_ready{namespace=\"$namespace\", condition=\"true\"} == 1)\n            , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n          ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n        )\n        , \"Hostname\", \"$1\", \"node\", \"(.*)\"\n      )\n    )\n  )\n)\nor\nsum by (Hostname, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  gpu:resource:dram_active\n  * on (Hostname, gpu, UUID, GPU_I_ID) group_right(modelName, GPU_I_PROFILE)\n  sgn(\n    sum by (Hostname, gpu, UUID, GPU_I_ID, MIG_UUID, exported_namespace, exported_pod, exported_container) (\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          * on (namespace, pod) group_left()\n          (kube_pod_status_ready{namespace=\"$namespace\", condition=\"true\"} == 1)\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      )\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "E"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Memory R/W Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU 메모리 활용 크기",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 34
+      },
+      "hiddenSeries": false,
+      "id": 82,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:575",
+          "alias": "requests",
+          "color": "#F2495C",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:576",
+          "alias": "limits",
+          "color": "#FF9830",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (node, gpu, UUID, GPU_I_ID, GPU_I_PROFILE, modelName, exported_namespace, exported_pod, exported_container) (\n  GPU_POD_MEMORY{exported_namespace=\"$namespace\", exported_pod=~\"$workspace.*\"}\n  * on(exported_namespace, exported_pod, UUID) group_left(gpu, GPU_I_ID, GPU_I_PROFILE, exported_container)\n  sgn(\n    label_replace(\n      MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$workspace.*\"}\n      * on (exported_namespace, exported_pod) group_left()\n      label_replace(\n        label_replace(\n          kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n          , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n        ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n      ), \"UUID\", \"$1\", \"MIG_UUID\", \"(.*)\"\n    )\n    or\n    GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod!=\"$workspace.*\", UUID=~\"GPU.*\"}\n    * on (exported_namespace, exported_pod) group_left()\n    label_replace(\n      label_replace(\n        kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n        , \"exported_namespace\", \"$1\", \"namespace\", \"(.*)\"\n      ), \"exported_pod\", \"$1\", \"pod\", \"(.*)\"\n    )\n  )\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_namespace}}/{{exported_pod}} {{modelName}}({{gpu}}) {{GPU_I_PROFILE}} {{GPU_I_ID}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Memory Usage",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.MIG.1)",
+            "renamePattern": ""
+          }
+        }
+      ],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:613",
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:614",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 41
+      },
+      "hiddenSeries": false,
+      "id": 70,
+      "interval": "1m",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod) (\n  irate(container_network_receive_bytes_total{namespace=\"$namespace\", image!=\"\"}[$__rate_interval])\n  * on (namespace, pod) group_left()\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Network Receive Bandwidth",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3504",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3505",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 41
+      },
+      "hiddenSeries": false,
+      "id": 72,
+      "interval": "1m",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod, container) (\n  irate(container_network_transmit_bytes_total{namespace=~\"$namespace\"}[$__rate_interval])\n  * on (namespace, pod) group_left()\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Network Transmit Bandwidth",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3714",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3715",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": -1,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 48
+      },
+      "hiddenSeries": false,
+      "id": 74,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "ceil(\n  sum(\n    rate(container_fs_reads_total{namespace=\"$namespace\", container!=\"\"}[5m])\n    *on(namespace, pod) group_left()\r\n\r\n    kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\r\n\r\n  )\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reads",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "ceil(\n  sum(\n    rate(container_fs_writes_total{namespace=\"$namespace\", container!=\"\"}[5m])\n    *on(namespace, pod) group_left()\r\n\r\n    kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\r\n\r\n  )\n)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Writes",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Storage IOPS",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3562",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3563",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 48
+      },
+      "hiddenSeries": false,
+      "id": 76,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(\n  rate(container_fs_reads_bytes_total{namespace=\"$namespace\", container!=\"\"}[$__rate_interval])\n  * on (namespace, pod) group_left()\r\r\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\r\n\r\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reads",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  rate(container_fs_writes_bytes_total{namespace=\"$namespace\", container!=\"\"}[$__rate_interval])\n  * on (namespace, pod) group_left()\r\r\n  kube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}\r\n\r\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Writes",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Storage Throughput",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3772",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3773",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "파드의 Ephemeral Storage 사용량",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 48
+      },
+      "hiddenSeries": false,
+      "id": 113,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "label_replace(\n  label_replace(\n    ephemeral_storage_pod_usage{pod_namespace=\"$namespace\"}\n    , \"namespace\", \"$1\", \"pod_namespace\", \"(.*)\"\n  ), \"pod\", \"$1\", \"pod_name\", \"(.*)\"\n)\n* on (namespace, pod)\nkube_pod_labels{namespace=\"$namespace\", label_workspaces_aipub_ten1010_io_owner=\"$workspace\"}",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{namespace}}/{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Ephemeral Storage Usage",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3772",
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3773",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "proj1",
+          "value": "proj1"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\"}, namespace)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\"}, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "workspace-1",
+          "value": "workspace-1"
+        },
+        "datasource": null,
+        "definition": "label_values(aipub_workspace_info{job=\"aipub-crd-exporter\"}, workspace)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "workspace",
+        "options": [],
+        "query": {
+          "query": "label_values(aipub_workspace_info{job=\"aipub-crd-exporter\"}, workspace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Ten Workspace Metrics",
+  "uid": "ten-workspace-metrics",
+  "version": 1
+}

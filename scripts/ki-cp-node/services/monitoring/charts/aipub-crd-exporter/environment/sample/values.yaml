@@ -1,0 +1,12 @@
+image:
+  tag: "0.1.0"
+
+service:
+  port: 31119
+  targetPort: 8000
+
+clusterRole:
+  rules:
+    - apiGroups: ["aipub.ten1010.io"]   # 감시할 CRD의 apiGroup
+      resources: ["workspaces", "aipubjobs"]  # 감시할 CRD의 plural 이름
+      verbs: ["get", "list", "watch"]

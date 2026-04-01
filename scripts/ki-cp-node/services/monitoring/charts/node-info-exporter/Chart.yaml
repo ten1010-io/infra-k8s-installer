@@ -1,0 +1,7 @@
+apiVersion: v2
+name: node-info-exporter
+description: A Helm chart for node-info-exporter
+type: application
+version: 0.1.0
+appVersion: "0.1.4"
+home: https://github.com/ten1010-io/node-info-exporter

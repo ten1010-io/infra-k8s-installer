@@ -1,0 +1,85 @@
+{{- if .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-user-alpha-config
+  namespace:  {{ include "promstackNamespace" . }}
+  annotations:
+    helm.sh/hook-weight: "-5"  # Configmap을 먼저 배포
+data:
+  config.yaml: |
+    injectRequestHeaders:
+    - name: Authorization
+      values:
+       - value: {{ .Values.grafana.user.authorizationHeader }}
+    injectResponseHeaders:
+    - name: X-Auth-Request-User
+      values:
+      - claim: user
+    - name: X-Auth-Request-Email
+      values:
+      - claim: email
+    - name: X-Auth-Request-Preferred-Username
+      values:
+      - claim: preferred_username
+    - name: X-Auth-Request-Groups
+      values:
+      - claim: groups
+    metricsServer:
+      BindAddress: ""
+      SecureBindAddress: ""
+      TLS: null
+    providers:
+    - ADFSConfig: {}
+      azureConfig:
+        tenant: common
+      backendLogoutURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/logout?id_token_hint={id_token}
+      bitbucketConfig: {}
+      {{- if eq .Values.providerCa.type "private"}}
+      caFiles:
+      - /etc/ssl/certs/ca.crt
+      {{- end }}
+      clientID: ${client_id}
+      clientSecret: ${client_secret}
+      githubConfig: {}
+      gitlabConfig: {}
+      googleConfig: {}
+      id: keycloak-oidc=${client_id}
+      loginGovConfig: {}
+      loginURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/auth
+      loginURLParameters:
+      - default:
+        - force
+        name: approval_prompt
+      oidcConfig:
+        audienceClaims:
+        - aud
+        emailClaim: email
+        groupsClaim: groups
+        insecureAllowUnverifiedEmail: true
+        insecureSkipIssuerVerification: {{ .Values.oauth2proxy.insecureSkipIssuerVerification }}
+        insecureSkipNonce: true
+        issuerURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}
+        jwksURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/certs
+        skipDiscovery: {{ .Values.oauth2proxy.skipDiscovery }}
+        userIDClaim: email
+      profileURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/userinfo
+      provider: keycloak-oidc
+      redeemURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/token
+      scope: openid email profile
+      validateURL: https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/userinfo
+    server:
+      BindAddress: 0.0.0.0:4180
+      SecureBindAddress: ""
+      TLS: null
+    upstreamConfig:
+      upstreams:
+      - flushInterval: 1s
+        id: /
+        insecureSkipTLSVerify: {{ .Values.grafana.upstreams.insecureSkipTLSVerify }}
+        passHostHeader: true
+        path: /
+        proxyWebSockets: true
+        timeout: 30s
+        uri: {{ include "grafanaHost" . }}
+{{- end }}

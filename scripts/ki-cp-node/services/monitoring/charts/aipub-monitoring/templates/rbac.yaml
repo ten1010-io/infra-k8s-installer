@@ -1,0 +1,30 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "aipub-monitoring.labels" . | nindent 4 }}
+rules:
+  # AipubUser CRD 조회 권한 (project.aipub.ten1010.io)
+  - apiGroups: ["project.aipub.ten1010.io"]
+    resources: ["aipubusers"]
+    verbs: ["get", "list"]
+  # Project CRD 조회 권한 (project.aipub.ten1010.io)
+  - apiGroups: ["project.aipub.ten1010.io"]
+    resources: ["projects"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "aipub-monitoring.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}

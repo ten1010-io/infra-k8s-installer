@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aipub-crd-exporter.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "aipub-crd-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "aipub-crd-exporter.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: http-metrics
+    port: {{ .Values.service.port }}
+    targetPort: http-metrics

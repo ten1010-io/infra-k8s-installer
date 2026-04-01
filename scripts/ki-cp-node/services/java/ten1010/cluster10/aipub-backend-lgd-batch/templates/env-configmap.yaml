@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "lgd-backend-batch.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.profiles.active | quote }}
+
+  SPRING_DATASOURCE_AIPUB_DRIVER_CLASS_NAME: {{ .Values.applicationYaml.spring.dataSource.aipub.driverClassName | quote }}
+  SPRING_DATASOURCE_AIPUB_JDBC_URL: {{ .Values.applicationYaml.spring.dataSource.aipub.jdbcUrl | quote }}
+  SPRING_DATASOURCE_AIPUB_USERNAME: {{ .Values.applicationYaml.spring.dataSource.aipub.username | quote }}
+  SPRING_DATASOURCE_AIPUB_PASSWORD: {{ .Values.applicationYaml.spring.dataSource.aipub.password | quote }}
+  SPRING_DATASOURCE_AIPUB_HIKARI_MAXIMUM_POOL_SIZE: {{ .Values.applicationYaml.spring.dataSource.aipub.hikari.maximumPoolSize | quote }}
+  SPRING_DATASOURCE_AIPUB_HIKARI_MINIMUM_IDLE: {{ .Values.applicationYaml.spring.dataSource.aipub.hikari.minimumIdle | quote }}
+
+  SPRING_DATASOURCE_BATCH_DRIVER_CLASS_NAME: {{ .Values.applicationYaml.spring.dataSource.batch.driverClassName | quote }}
+  SPRING_DATASOURCE_BATCH_URL: {{ .Values.applicationYaml.spring.dataSource.batch.url | quote }}
+  SPRING_DATASOURCE_BATCH_USERNAME: {{ .Values.applicationYaml.spring.dataSource.batch.username | quote }}
+  SPRING_DATASOURCE_BATCH_PASSWORD: {{ .Values.applicationYaml.spring.dataSource.batch.password | quote }}
+
+  SPRING_DATASOURCE_LGD_DRIVER_CLASS_NAME: {{ .Values.applicationYaml.spring.dataSource.lgd.driverClassName | quote }}
+  SPRING_DATASOURCE_LGD_JDBC_URL: {{ .Values.applicationYaml.spring.dataSource.lgd.url | quote }}
+  SPRING_DATASOURCE_LGD_USERNAME: {{ .Values.applicationYaml.spring.dataSource.lgd.username | quote }}
+  SPRING_DATASOURCE_LGD_PASSWORD: {{ .Values.applicationYaml.spring.dataSource.lgd.password | quote }}
+
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.applicationYaml.spring.jpa.hibernate.ddlAuto | quote }}
+
+  APP_GATEWAY_BACKEND_URL: {{ .Values.applicationYaml.app.gateway.backendUrl | quote }}
+  APP_GATEWAY_USERNAME: {{ .Values.applicationYaml.app.gateway.username | quote }}
+  APP_GATEWAY_PASSWORD: {{ .Values.applicationYaml.app.gateway.password | quote }}
+
+  APP_AIPUB_ADMIN_LIST_0: {{ .Values.applicationYaml.app.aipubAdmin.list.admin1 | quote }}
+  APP_AIPUB_ADMIN_LIST_1: {{ .Values.applicationYaml.app.aipubAdmin.list.admin2 | quote }}
+  APP_AIPUB_ADMIN_LIST_2: {{ .Values.applicationYaml.app.aipubAdmin.list.admin3 | quote }}
+  APP_AIPUB_ADMIN_LIST_3: {{ .Values.applicationYaml.app.aipubAdmin.list.admin4 | quote }}
+
+  APP_SCHEDULE_CRONTAB_EMP_CREATE_JOB: {{ .Values.applicationYaml.app.schedule.crontab.empCreateJob | quote }}
+  APP_SCHEDULE_INTERVAL_CREATE_HARBOR_JOB: {{ .Values.applicationYaml.app.schedule.interval.createHarborJob | quote }}
+  APP_SCHEDULE_INTERVAL_CREATE_K8S_JOB: {{ .Values.applicationYaml.app.schedule.interval.createK8sJob | quote }}
+  APP_SCHEDULE_INTERVAL_CREATE_KEYCLOAK_JOB: {{ .Values.applicationYaml.app.schedule.interval.createKeycloakJob | quote }}
+  APP_SCHEDULE_INTERVAL_DELETE_HARBOR_JOB: {{ .Values.applicationYaml.app.schedule.interval.deleteHarborJob | quote }}
+  APP_SCHEDULE_INTERVAL_DELETE_K8S_JOB: {{ .Values.applicationYaml.app.schedule.interval.deleteK8sJob | quote }}
+  APP_SCHEDULE_INTERVAL_DISABLE_KEYCLOAK_JOB: {{ .Values.applicationYaml.app.schedule.interval.disableKeycloakJob | quote }}
+  APP_SCHEDULE_INTERVAL_EAI_AIPUB_JOB: {{ .Values.applicationYaml.app.schedule.interval.eaiAipubJob | quote }}
+
+  TZ: "Asia/Seoul"

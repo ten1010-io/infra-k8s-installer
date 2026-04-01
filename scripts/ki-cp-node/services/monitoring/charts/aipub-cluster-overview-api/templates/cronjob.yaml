@@ -1,0 +1,53 @@
+{{- if .Values.cacheWarmup.cronjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "aipub-cluster-overview-api.fullname" . }}-cache-warmup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: aipub-cluster-overview-cache-warmup
+    {{- include "aipub-cluster-overview-api.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.cacheWarmup.cronjob.schedule }}"
+  timeZone: "{{ .Values.cacheWarmup.cronjob.timeZone }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.cacheWarmup.cronjob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cacheWarmup.cronjob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.cacheWarmup.backoffLimit }}
+      activeDeadlineSeconds: {{ .Values.cacheWarmup.activeDeadlineSeconds }}
+      ttlSecondsAfterFinished: {{ .Values.cacheWarmup.ttlSecondsAfterFinished }}
+      template:
+        metadata:
+          labels:
+            app: aipub-cluster-overview-cache-warmup
+        spec:
+          tolerations:
+            {{- toYaml .Values.tolerations | nindent 12 }}
+          affinity:
+            {{- toYaml .Values.affinity | nindent 12 }}
+          containers:
+            - name: cache-warmup
+              image: {{ include "aipub-cluster-overview-api.image" . | quote }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["python", "cache_warmup.py"]
+              resources:
+                {{- toYaml .Values.cacheWarmup.resources | nindent 16 }}
+              env:
+                - name: AAA_API_GATEWAY_HOST
+                  value: "http://{{ include "aipub-cluster-overview-api.fullname" . }}:{{ .Values.service.port }}"
+                - name: AAA_BACKEND_CORS_ORIGINS
+                  value: "http://localhost:8000"
+                - name: AAA_PROMETHEUS_SCHEME
+                  value: "{{ .Values.prometheus.service.scheme }}"
+                - name: AAA_PROMETHEUS_HOST
+                  value: "{{ .Values.prometheus.service.name }}.{{ .Values.prometheus.namespace }}.svc.cluster.local"
+                - name: AAA_PROMETHEUS_PORT
+                  value: "{{ .Values.prometheus.service.port }}"
+                - name: AAA_PROMETHEUS_TIMEOUT
+                  value: "{{ .Values.prometheus.timeoutSeconds }}"
+                - name: AAA_IGNORE_NAMESPACES
+                  value: "{{ join "," .Values.ignoreNamespaces }}"
+          restartPolicy: OnFailure
+{{- end }}

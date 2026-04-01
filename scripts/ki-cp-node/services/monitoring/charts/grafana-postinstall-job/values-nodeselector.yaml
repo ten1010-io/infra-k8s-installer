@@ -1,0 +1,4 @@
+nodeSelector:
+  enabled: true
+  labels:
+    kubernetes.io/hostname: vnode5.pnode13.idc1.ten1010.io

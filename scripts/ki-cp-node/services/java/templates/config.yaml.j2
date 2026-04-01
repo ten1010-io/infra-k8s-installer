@@ -1,0 +1,34 @@
+namespace: {{ java_service_namespace }}
+
+agent:
+  datadog: {{ java_agent_datadog | lower }}
+
+version:
+  aipub_version: {{ java_aipub_version }}
+  image_base: {{ java_image_base }}
+  api_tag: {{ java_api_tag }}
+  usage_tag: {{ java_usage_tag }}
+  gateway_tag: {{ java_gateway_tag }}
+  batch_tag: {{ java_batch_tag }}
+  adapter_tag: {{ java_adapter_tag }}
+  frontend_tag: {{ java_frontend_tag }}
+  project_controller: {{ java_project_controller_tag }}
+
+domain:
+  aipub_domain: {{ java_aipub_domain }}
+  aipub_host_prefix: {{ java_aipub_host_prefix }}
+  harbor_host_prefix: {{ java_harbor_host_prefix }}
+
+application:
+  api_profiles: {{ java_api_profiles }}
+  api_flyway: {{ java_api_flyway | lower }}
+  ssh_port_min: "{{ java_ssh_port_min }}"
+  ssh_port_max: "{{ java_ssh_port_max }}"
+  volumes:
+{% for vol in java_volumes %}
+    - type: {{ vol.type }}
+      value: {{ vol.value }}
+{% endfor %}
+
+ingress:
+  tls_secret_name: {{ java_ingress_tls_secret_name }}

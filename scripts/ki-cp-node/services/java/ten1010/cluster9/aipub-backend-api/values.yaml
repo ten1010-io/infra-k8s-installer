@@ -1,0 +1,200 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-backend-api
+  pullPolicy: Always
+  tag: "1.0.3"
+
+imagePullSecrets:
+  - name: ghcr-ten1010
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-api.logs: '[{"source": "java", "service": "aipub-backend-api"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 2Gi
+
+livenessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+  - name: java-agents
+    hostPath:
+      path: /opt/aipub/agents
+      type: Directory
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+  - mountPath: /opt/aipub/agents
+    name: java-agents
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: batch
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+      username: aipub
+      password: Password1@
+      hikari:
+        maximumPoolSize: "10"
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+    flyway:
+      enabled: false
+      baselineOnMigration: false
+  app:
+    jwt:
+      secretKey: mb80on1iTE7ZPi7BoY90jQ1sholLCuCo
+    application:
+      type: BACKEND_API
+      id: backend_api
+    domain:
+      auth:
+        initAdminUsername: aipubadmin
+        initPassword: Ten1010!!
+      keycloak:
+        serverUrl: https://aipub-keycloak.cluster9.idc1.ten1010.io
+        issuerUrl: https://aipub-keycloak.cluster9.idc1.ten1010.io/realms/aipub
+        tokenUrl: https://aipub-keycloak.cluster9.idc1.ten1010.io/realms/aipub/protocol/openid-connect/token
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: mb80on1iTE7ZPi7BoY90jQ1sholLCuCo
+        userRealm: aipub
+        userRealmPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnuHj8H3gVXm1hTWvfHOtLXAUI22a4QpS51ZJ8+sMYsGMJvUcjBqU33fXHCEXM+ehN0cXBuw+0+niQgrr/UOH2kSk2GqDVslcsLGBh1qWoqwxgS33PLY4H9nIFWeSz5M33oM7LOaSkj51+k1SFRfv6L9d/DsNKiMz4R/up9V7KIyW4N7134hAxL5N0KdVD3wXWD1TRQP6eTuBxIaE3Ykhl5sWT0gNm4wu6V3XMljWECNE7NzG01u+VqXO2g2APNPMk3RO1UGmmWaQlSNKC/pFBCjjVnMTLPdhBd5TFLomdzjj7eX4goxdeAwebAnt/VRECUMEsprNBhA1YMrPsTKqBQIDAQAB
+        verifyingSsl: false
+      harbor:
+        serverUrl: https://aipub-harbor.cluster9.idc1.ten1010.io
+        verifyingSsl: false
+        username: admin
+        password: Harbor12345
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+        k8sManagerToken: eyJhbGciOiJSUzI1NiIsImtpZCI6IlMwTUUwQ003ZWVHQmZ6Y09MVzVYSDlwXzNJT0hWam1ZSnhXS1NXWmdVNkkifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhaXB1YiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhaXB1Yi1yZXNvdXJjZXMtbWFuYWdlci1zZWNyZXQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiYWlwdWItcmVzb3VyY2VzLW1hbmFnZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI3Yzk5OTM1Ny0yYzEyLTRjMTEtYWUwZS1jMTJiYzVmN2ZkMTYiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6YWlwdWI6YWlwdWItcmVzb3VyY2VzLW1hbmFnZXIifQ.qQPc0KDMX8OQ35lypie2sKAet9N-Hz-DSQ2vbD3kVdmrbQnMazfUB7HF_1FDCRGjhvRoheOSb693Bty-EVUoyOUw5951jiq842cYc0iqDkiq4GtF86b-MoCiNzJhOvZK7WKZP-j5_GyroMOfSqKV6BueyWbNaL88AfRX2HvSeTt3cNPcSarAN0fndtIXrvCWByGknRpQZd_aQaTpQSeR6K7h_5RLo54viRf7sG3QwtGGzx4M3bQET5d1vaSgbpQfsVRhEojqGSkqVAMBhehJVOdIXQHtglBP6cJSkG1SWNbICK-GjH_mfctadUMDo9dxl9-2Pzk8wcjbszFbKsnLug
+        verifyingSsl: false
+    esClient:
+      serverUrl: http://elasticsearch-master.aipub-efk:9200
+      username: elastic
+      password: n77C28hfcMVMbXVI
+      verifyingSsl: false
+    simplejavamail:
+      smtpHost: email-smtp.ap-northeast-2.amazonaws.com
+      smtpPort: 465
+      smtpUsername: AKIAQRYAI5QYE6L6OUOW
+      smtpPassword: BAoxnYj9qLmRkhEhSnPbAc6YDGoDfpSYb7IztimMhXig
+      fromAddress: helloten@ten1010.io
+      templateHomeUrl: https://aipub.cluster9.idc1.ten1010.io/
+      tlsEnabled: true
+      sendEnable: true
+    soapMms:
+      requestNamespace: http://xmlns.oracle.com/pcbpel/adapter/db/IKEP/INSERT_MMS/
+      mmsUrl: http://eaiws.lgdisplay.com:3000/orabpel/LGD_COMMON/callMmsEP/1.0
+      callback: "1544-3999"
+      sendEnable: false
+  resilience4j:
+    retry:
+      instances:
+        emailRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException
+        emailAllRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException
+
+agent:
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-api"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

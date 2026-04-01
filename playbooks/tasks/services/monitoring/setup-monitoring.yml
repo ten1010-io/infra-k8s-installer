@@ -1,0 +1,7 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Execute monitoring install.sh
+      shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/services/monitoring/installer/install.sh"
+      when: inventory_hostname == k8s_cp_nodes | first

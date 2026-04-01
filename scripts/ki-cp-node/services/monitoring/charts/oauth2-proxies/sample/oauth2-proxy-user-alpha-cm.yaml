@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-user-alpha-config
+  namespace: efk
+data:
+  config.yaml: |
+    injectRequestHeaders:
+    - name: Authorization
+      values:
+      - value: QmFzaWMgWVdsd2RXSTZZV2x3ZFdJeFFBPT0=
+    injectResponseHeaders:
+    - name: X-Auth-Request-User
+      values:
+      - claim: user
+    - name: X-Auth-Request-Email
+      values:
+      - claim: email
+    - name: X-Auth-Request-Preferred-Username
+      values:
+      - claim: preferred_username
+    - name: X-Auth-Request-Groups
+      values:
+      - claim: groups
+    metricsServer:
+      BindAddress: ""
+      SecureBindAddress: ""
+      TLS: null
+    providers:
+    - ADFSConfig: {}
+      azureConfig:
+        tenant: common
+      backendLogoutURL: ""
+      bitbucketConfig: {}
+      caFiles:
+      - /etc/ssl/certs/keycloak-ca.crt
+      clientID: ${client_id}
+      clientSecret: ${client_secret}
+      githubConfig: {}
+      gitlabConfig: {}
+      googleConfig: {}
+      id: keycloak-oidc=kibana
+      loginGovConfig: {}
+      loginURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/auth
+      loginURLParameters:
+      - default:
+        - force
+        name: approval_prompt
+      oidcConfig:
+        audienceClaims:
+        - aud
+        emailClaim: email
+        groupsClaim: groups
+        insecureAllowUnverifiedEmail: true
+        insecureSkipIssuerVerification: true
+        insecureSkipNonce: true
+        issuerURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s
+        jwksURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/certs
+        skipDiscovery: false
+        userIDClaim: email
+      profileURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/userinfo
+      provider: keycloak-oidc
+      redeemURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/token
+      scope: openid email profile
+      validateURL: https://keycloak.cluster9.idc1.ten1010.io/realms/k8s/protocol/openid-connect/userinfo
+    server:
+      BindAddress: 0.0.0.0:4180
+      SecureBindAddress: ""
+      TLS: null
+    upstreamConfig:
+      upstreams:
+      - flushInterval: 1s
+        id: /
+        insecureSkipTLSVerify: true
+        passHostHeader: true
+        path: /
+        proxyWebSockets: true
+        timeout: 30s
+        uri: https://10.111.83.199:5601/

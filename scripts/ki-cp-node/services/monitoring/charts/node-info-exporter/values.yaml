@@ -1,0 +1,41 @@
+image:
+  repository: asdfry/node-info-exporter
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 32323
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+serviceMonitor:
+  release: kube-prometheus-stack
+  interval: 300s
+  telemetryPath: /metrics
+  timeout: 10s
+
+app:
+  duration: "3600"
+
+configMap:
+  name: mig-supported-gpus
+  migSupportedGpus:
+    GB200:
+      max_number_of_instances: 7
+    B200:
+      max_number_of_instances: 7
+    H200:
+      max_number_of_instances: 7
+    H100:
+      max_number_of_instances: 7
+    A100:
+      max_number_of_instances: 7
+    A30:
+      max_number_of_instances: 4

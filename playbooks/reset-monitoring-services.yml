@@ -1,0 +1,17 @@
+- import_playbook: tasks/check-ki-env-setup.yml
+
+- import_playbook: tasks/preflight-playbook.yml
+  vars:
+    playbook: "reset-monitoring-services"
+
+- import_playbook: tasks/gather-facts.yml
+
+- import_playbook: tasks/validate-hostvars.yml
+
+- import_playbook: tasks/setup-vars-file.yml
+
+- import_playbook: tasks/charts/check-k8s-cluster-state.yml
+
+- import_playbook: tasks/services/monitoring/reset-monitoring.yml
+
+- import_playbook: tasks/reset-vars-file.yml

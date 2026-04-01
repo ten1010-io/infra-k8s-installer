@@ -1,0 +1,31 @@
+replicas: 3
+
+image:
+  repository: aipub-notice-board-api
+  tag: ""
+  pullPolicy: Never
+
+ingress:
+  hostname: notice.cluster3.idc1.ten1010.io
+  className: lb1
+  createTls:
+    enabled: true
+    certPath: "environments/cluster3/certs/tls.crt"
+    keyPath: "environments/cluster3/certs/tls.key"
+
+storageProvisioning:
+  size: "20Gi"
+  type: "static"  # Options: "static" or "dynamic"
+  static:
+    local:
+      path: "/aipub/pv/aipub-notice-board-api/staticfiles"  # host path in the node
+      nodeSelector:
+        - kubernetes.io/hostname: "vnode5.pnode12.idc1.ten1010.io"
+
+elasticsearch:
+  namespace: aipub-efk
+  service:
+    scheme: "https"
+    name: "elasticsearch-master"
+    port: 9200
+  masterCredential: "elasticsearch-master-credentials"

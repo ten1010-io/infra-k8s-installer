@@ -1,0 +1,55 @@
+git_clone_init_container: false
+git_user_name: ""
+git_token: ""
+prometheus_host: ""
+promstack_release: promstack
+log_level: WARN
+block_root_directory: "/etc/block-gpu"
+
+namespaceOverride: ""
+
+image:
+  repository: "gpu-pod-exporter"
+  tag: "1.0.0"
+  imagePullPolicy: "Never"
+
+
+podMonitor:
+  additionalLabels: {}
+  # 예시:
+  # environment: production
+  # team: ai
+  # custom-label: value
+  interval: 1s
+
+env:
+  COLLECTION_INTERVAL: "1"
+  CRICTL_COLLECTION_INTERVAL: "1"
+  NVML_COLLECTION_INTERVAL: "1"
+  MIG_COLLECTION_INTERVAL: "1"
+  EXCEPT_NAMESPACES: "aipub-linkerd,aipub,coaster,aipub-promstack,aipub-efk,prometheus"
+
+
+resources: {}
+  #requests:
+  #  cpu: 700m
+  #  memory: 320Mi
+  #limits:
+  #  cpu: 700m
+  #  memory: 320Mi  
+
+nodeSelector: {}
+#  node-role.kubernetes.io/control-plane: ""
+#
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
+    operator: "Exists"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: "node-type.coaster.ten1010.io/gpu"
+          operator: "Exists"

@@ -1,0 +1,11 @@
+datadog:
+  datadog:
+    site: ap1.datadoghq.com
+    apiKeyExistingSecret: datadog-api-key
+    apm:
+      enabled: true
+      nonLocalTraffic: true
+    logs:
+      enabled: true
+  agents:
+    enabled: true

@@ -1,0 +1,12 @@
+{{- if .Values.kibana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: provider-ca-cert
+  namespace:  {{ include "efkNamespace" . }}
+  annotations:
+    helm.sh/hook-weight: "-5"  # Configmap을 먼저 배포
+data:
+  ca.crt: |
+    {{- .Values.providerCa.caCrt | nindent 4 }}
+{{- end }}

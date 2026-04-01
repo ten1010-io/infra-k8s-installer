@@ -1,0 +1,31 @@
+{{- if eq .Values.metric_export_mode "DIRECT" }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: persistent-linkerd-exporter
+  namespace:  {{ include "promstackNamespace" . }}
+  labels:
+    release: {{ include "promstackRelease" . }}
+    {{- if .Values.podMonitor.additionalLabels }}
+    {{ toYaml .Values.podMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+  - interval: 30s
+    path: /metrics
+    port: metrics
+    relabelings:
+    - action: replace
+      sourceLabels:
+      - exported_pod
+      targetLabel: pod
+    - action: replace
+      sourceLabels:
+      - exported_namespace
+      targetLabel: namespace
+  selector:
+    matchLabels:
+      monitor: persistent-linkerd-exporter
+{{- end }}

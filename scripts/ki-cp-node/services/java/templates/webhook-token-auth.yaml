@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Config
+clusters:
+  - name: aipub-backend-gateway
+    cluster:
+      server: https://aipub.cluster7.idc1.ten1010.io/api/k8s/token/validation
+      certificate-authority: /etc/kubernetes/pki/aipub-ca.crt
+users:
+  - name: kube-apiserver
+    user: {}
+current-context: webhook
+contexts:
+  - context:
+      cluster: aipub-backend-gateway
+      user: kube-apiserver
+    name: webhook

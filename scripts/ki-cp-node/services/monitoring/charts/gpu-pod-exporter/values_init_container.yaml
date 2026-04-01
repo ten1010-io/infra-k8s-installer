@@ -1,0 +1,4 @@
+git_clone_init_container: true
+git_user_name: "Yeosangho"
+git_token: "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"
+docker_image: "nvidia/cuda:12.2.2-runtime-ubuntu22.04"

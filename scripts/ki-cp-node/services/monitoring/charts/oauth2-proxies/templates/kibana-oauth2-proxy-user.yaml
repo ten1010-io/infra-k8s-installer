@@ -1,0 +1,164 @@
+{{- if .Values.kibana.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-user-proxy
+  name: oauth2-user-proxy
+  namespace:  {{ include "efkNamespace" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-user-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-user-proxy
+    spec:
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- if .Values.dnsConfig.enabled }}
+      dnsConfig:
+        {{- if .Values.dnsConfig.nameservers }}
+        nameservers:
+        {{- range .Values.dnsConfig.nameservers }}
+        - {{ . | quote }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.hostAliases.enabled }}
+      hostAliases:
+      {{- range .Values.hostAliases.aliases }}
+      - ip: {{ .ip | quote }}
+        hostnames:
+        {{- range .hostnames }}
+        - {{ . | quote }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      containers:
+      - args:
+        - --alpha-config
+        - "/alpha/config.yaml"
+        - --email-domain=*
+        - --ssl-insecure-skip-verify={{ .Values.oauth2proxy.sslInsecureSkipVerify }}
+        - --cookie-expire=0
+        - --cookie-refresh=30s            
+        - --cookie-csrf-per-request=true
+        - --cookie-csrf-expire=5m
+        - --cookie-samesite=lax
+        - --cookie-secure={{ .Values.kibana.user.cookieSecure }}
+        - --session-store-type=cookie
+        - --cookie-samesite=lax
+        - --reverse-proxy=true
+        - --skip-provider-button=true
+        - --whitelist-domain={{ .Values.keycloak.whitelistDomain }}  
+        image: {{ include "oauth2ProxyImage" . | quote }}
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+        envFrom:
+        - secretRef:
+            name: keycloak-kibana-client
+        env:
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: FApM8bW-JK_a0y0DLm45miuvohvAFl6X8b7NZt9AQz8=
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        volumeMounts:
+        {{- if eq .Values.providerCa.type "private"}}
+        - name: provider-ca-cert
+          mountPath: /etc/ssl/certs/ca.crt
+          subPath: ca.crt
+        {{- end }}
+        - name: config
+          mountPath: /alpha
+          readOnly: true
+      volumes:
+      {{- if eq .Values.providerCa.type "private"}}
+      - name: provider-ca-cert
+        configMap:
+          {{- if eq .Values.providerCa.caCrt "" }}
+          name: {{ .Values.providerCa.defaultCaCrtConfigMap }}
+          {{- else }}
+          name: provider-ca-cert
+          {{- end }}
+      {{- end }}
+      - name: config
+        configMap:
+          name: oauth2-proxy-user-alpha-config
+          items:
+          - key: config.yaml
+            path: config.yaml    
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-user-proxy
+  name: oauth2-user-proxy
+  namespace:  {{ include "efkNamespace" . }}
+spec:
+  type: {{ .Values.kibana.user.serviceType }}
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+    targetPort: 4180
+  selector:
+    k8s-app: oauth2-user-proxy
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: oauth2-user-proxy
+  namespace:  {{ include "efkNamespace" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "24k"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      location /logout {
+        return 302 https://{{ .Values.kibana.user.host }}/oauth2/sign_out;
+      }
+      location /oauth2/sign_in {
+        return 302 https://{{ include "keycloakHost" .  }}/realms/{{ .Values.keycloak.realm }}/protocol/openid-connect/logout?post_logout_redirect_uri=https://{{ .Values.kibana.user.host }}/oauth2/sign_out&client_id={{ .Values.keycloak.kibanaClient }};
+      }         
+spec:
+  ingressClassName: {{ .Values.ingressClassName }}
+  rules:
+  - host: {{ .Values.kibana.user.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: oauth2-user-proxy
+            port:
+              number: 4180
+  tls:
+  - hosts:
+    - {{ .Values.kibana.user.host }}
+    secretName: kibana-user
+{{- end }}

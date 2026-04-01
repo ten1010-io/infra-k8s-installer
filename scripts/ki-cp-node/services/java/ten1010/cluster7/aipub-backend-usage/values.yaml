@@ -1,0 +1,122 @@
+replicaCount: 1
+
+image:
+  repository: vnode2.pnode1.idc1.ten1010.io:8443/aipub-ops-4.0.0/aipub-backend-usage
+  pullPolicy: Always
+  tag: "0.0.0-SNAPSHOT"
+
+imagePullSecrets:
+  - name: harbor-java
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-usage.logs: '[{"source": "java", "service": "aipub-backend-usage"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+  - name: java-agents
+    hostPath:
+      path: /opt/aipub/agents
+      type: Directory
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+  - mountPath: /opt/aipub/agents
+    name: java-agents
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: production
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/usages
+      username: aipub
+      password: Password1@
+    jpa:
+      hibernate:
+        ddlAuto: none
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+  app:
+    jwt:
+      secretKey: FZdex58sKAOsjc8JZ0WzljxtAtFM4Odb
+    application:
+      type: BACKEND_USAGE
+      id: backend_usage
+    k8s:
+      verifyingSsl: false
+      kubeConfig:
+        mode: in_cluster
+  management:
+    tracing:
+      enabled: true
+
+agent:
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-usage"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

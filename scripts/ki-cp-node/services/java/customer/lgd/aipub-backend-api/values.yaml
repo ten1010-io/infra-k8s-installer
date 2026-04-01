@@ -1,0 +1,184 @@
+replicaCount: 1
+
+image:
+  repository: vnode2.pnode1.idc1.ten1010.io:8443/aipub-ops-4.1.0/aipub-backend-api
+  pullPolicy: IfNotPresent
+  tag: "1.0.4"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 2Gi
+
+livenessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: batch
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+      username: aipub
+      password: Password1@
+      hikari:
+        maximumPoolSize: "20"
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+    flyway:
+      enabled: true
+      baselineOnMigration: true
+  app:
+    jwt:
+      secretKey: P55Adx22JvTuhlXewRBY7BPNIQFoqQqj
+    application:
+      type: BACKEND_API
+      id: backend_api
+    domain:
+      auth:
+        initPassword: Ten1010!!
+        maxLoginFailures: 5
+        failedLoginAttemptIntervalInSeconds: 30
+      keycloak:
+        serverUrl: https://keycloak.aip.lgdisplay.com
+        issuerUrl: https://keycloak.aip.lgdisplay.com/realms/aipub
+        tokenUrl: https://keycloak.aip.lgdisplay.com/realms/aipub/protocol/openid-connect/token
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: P55Adx22JvTuhlXewRBY7BPNIQFoqQqj
+        userRealm: aipub
+        userRealmPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjftJmH6ny4mA7w1+CyGWnVP6zWS35lgm9dHTyLKcXNZNT5Oe/vYzS9+CVglp5wG5ei8hrUnpC7FBVUET+nJ8wK08uTB7Nb9AZsvL0DSur5lWi0+w84/spjCecGPJYy2rxWO02BcXDSjJZG3XQs+o3RoO9LDAcUMEhRSScZ75W/jTe/YXpVAzI63nsWxIJSqg3TFgw5rpb3kaflc/W6AhVo3XlBsBMu9vWxlVgXH11NRUunNs+fb7rTToEnd9hLqxlJTEGX84q7tjwg1GiDkB5ZFZJOF9ZGcWGjMmQO9iuTuLjJkcbWK02WP3pAeQAfwVP6CuZMf0x1DD7ICXwQITnQIDAQAB
+        userPassword: Ten1010!!
+        verifyingSsl: false
+      harbor:
+        serverUrl: https://aipub-harbor.lgdisplay.com
+        verifyingSsl: false
+        username: admin
+        password: Harbor12345
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+        k8sManagerToken: eyJhbGciOiJSUzI1NiIsImtpZCI6IjNJNFdOdy1MSHlOSk1qSFBGeHhGS1QzWVQtZmRzRVlkajU3RkxPczAyUkUifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhaXB1YiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhaXB1Yi1yZXNvdXJjZXMtbWFuYWdlci1zZWNyZXQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiYWlwdWItcmVzb3VyY2VzLW1hbmFnZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIwMDQ0YWI0OC01NWI1LTQ4NjktOWMzNy0xODUxY2UxNjg4MDciLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6YWlwdWI6YWlwdWItcmVzb3VyY2VzLW1hbmFnZXIifQ.Hw1VZ28hEvWlA1ofFLL6DlDHIqtwagkLKDELWsu-kVajHVA2yZJo8RmlYZuKyJCehHEdNh0hQJNVn20vmo7ZLjn56gcq_2wg8RWgsNch7gOZATthNg4leX4JjvzyObx6VDcMZ9STPA6eLaJ4TDqS05n6vH1QaptsMITsybZAX7hFC7zDZhd0n_K5D98-58gh01c0cN6tdFHo7PLsuU1c9IzjA1rtkyt9kWfj8zdv3s1IWl-IzB3y8PJun6SB8X1DJlPdHrYnqCaHA6ltC2yKJEMMZ0foDt6QXnv21rbjcf20i1AaPJv5ZzVJzOgJ-8avJgnn7K0guwqp0aoIo-GwPw
+        verifyingSsl: false
+    esClient:
+      serverUrl: http://elasticsearch-master.aipub-efk:9200
+      username: elastic
+      password: SSDGOAH9ZNNcZCbG
+      verifyingSsl: false
+    simplejavamail:
+      smtpHost: mailrelay.lgdisplay.com
+      smtpPort: 25
+      smtpUsername:
+      smtpPassword:
+      fromAddress: noreply@lgdisplay.com
+      templateHomeUrl: https://api.lgdisplay.com/
+      tlsEnabled: false
+      sendEnable: true
+    soapMms:
+      requestNamespace: http://xmlns.oracle.com/pcbpel/adapter/db/IKEP/INSERT_MMS/
+      mmsUrl: http://eaiws.lgdisplay.com:3000/orabpel/LGD_COMMON/callMmsEP/1.0
+      callback: "1544-3999"
+      sendEnable: false
+  resilience4j:
+    retry:
+      instances:
+        emailRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException
+        emailAllRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException

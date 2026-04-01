@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-backend-api.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.spring.profiles.active | quote }}
+
+  SPRING_BATCH_JDBC_INITIALIZE_SCHEMA: {{ .Values.applicationYaml.spring.batch.jdbc.initializeSchema | quote }}
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: {{ .Values.applicationYaml.spring.dataSource.driverClassName | quote }}
+  SPRING_DATASOURCE_URL: {{ .Values.applicationYaml.spring.dataSource.url | quote }}
+  SPRING_DATASOURCE_USERNAME: {{ .Values.applicationYaml.spring.dataSource.username | quote }}
+  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: {{ .Values.applicationYaml.spring.dataSource.hikari.maximumPoolSize | quote }}
+
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQLDialect"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.applicationYaml.spring.jpa.hibernate.ddlAuto | quote }}
+  SPRING_JPA_SHOW_SQL: {{ .Values.applicationYaml.spring.jpa.showSql | quote }}
+  SPRING_JPA_GENERATE_DDL: {{ .Values.applicationYaml.spring.jpa.generateDdl | quote}}
+  SPRING_JPA_OPEN_IN_VIEW: {{ .Values.applicationYaml.spring.jpa.openInView | quote }}
+
+  SPRING_FLYWAY_BASELINE_ON_MIGRATE: {{ .Values.applicationYaml.spring.flyway.baselineOnMigration | quote }}
+  SPRING_FLYWAY_ENABLED:  {{ .Values.applicationYaml.spring.flyway.enabled | quote }}
+
+  APP_JWT_SECRET_KEY: {{ .Values.applicationYaml.app.jwt.secretKey | quote }}
+  APP_APPLICATION_TYPE: {{ .Values.applicationYaml.app.application.type | quote }}
+  APP_APPLICATION_ID: {{ .Values.applicationYaml.app.application.id | quote }}
+  APP_DOMAIN_KEYCLOAK_SERVER_URL: {{ .Values.applicationYaml.app.domain.keycloak.serverUrl | quote }}
+  APP_DOMAIN_KEYCLOAK_CLIENT_REALM: {{ .Values.applicationYaml.app.domain.keycloak.clientRealm | quote }}
+  APP_DOMAIN_KEYCLOAK_CLIENT_ID: {{ .Values.applicationYaml.app.domain.keycloak.clientId | quote }}
+  APP_DOMAIN_KEYCLOAK_USER_REALM: {{ .Values.applicationYaml.app.domain.keycloak.userRealm | quote }}
+  APP_DOMAIN_KEYCLOAK_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.keycloak.verifyingSsl | quote }}
+
+  APP_DOMAIN_HARBOR_SERVER_URL: {{ .Values.applicationYaml.app.domain.harbor.serverUrl | quote }}
+  APP_DOMAIN_HARBOR_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.harbor.verifyingSsl | quote }}
+  APP_DOMAIN_HARBOR_USERNAME: {{ .Values.applicationYaml.app.domain.harbor.username | quote }}
+
+  APP_DOMAIN_K8S_PROXY_K8S_URI: {{ .Values.applicationYaml.app.domain.k8sProxy.k8sUri | quote }}
+  APP_DOMAIN_K8S_PROXY_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.k8sProxy.verifyingSsl | quote }}
+
+  APP_SIMPLEJAVAMAIL_SMTP_HOST: {{ .Values.applicationYaml.app.simplejavamail.smtpHost | quote }}
+  APP_SIMPLEJAVAMAIL_SMTP_PORT: "{{ .Values.applicationYaml.app.simplejavamail.smtpPort }}"
+  APP_SIMPLEJAVAMAIL_SMTP_USERNAME: {{ .Values.applicationYaml.app.simplejavamail.smtpUsername | quote }}
+  APP_SIMPLEJAVAMAIL_FROM_ADDRESS: {{ .Values.applicationYaml.app.simplejavamail.fromAddress | quote }}
+  APP_SIMPLEJAVAMAIL_TLS_ENABLED: "{{ .Values.applicationYaml.app.simplejavamail.tlsEnabled }}"
+  APP_SIMPLEJAVAMAIL_SEND_ENABLE: "{{ .Values.applicationYaml.app.simplejavamail.sendEnable }}"
+
+  APP_SOAP_MMS_REQUEST_NAMESPACE: {{ .Values.applicationYaml.app.soapMms.requestNamespace | quote }}
+  APP_SOAP_MMS_MMS_URL: {{ .Values.applicationYaml.app.soapMms.mmsUrl | quote }}
+  APP_SOAP_MMS_CALLBACK: {{ .Values.applicationYaml.app.soapMms.callback | quote }}
+  APP_SOAP_MMS_SEND_ENABLE: "{{ .Values.applicationYaml.app.soapMms.sendEnable }}"
+
+  APP_ES_CLIENT_SERVER_URL: {{ .Values.applicationYaml.app.esClient.serverUrl | quote }}
+  APP_ES_CLIENT_USERNAME: {{ .Values.applicationYaml.app.esClient.username | quote }}
+  APP_ES_CLIENT_VERIFYING_SSL: {{ .Values.applicationYaml.app.esClient.verifyingSsl | quote }}
+
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_RETRY_MAX_ATTEMPTS: "{{ .Values.applicationYaml.resilience4j.retry.instances.emailRetry.maxAttempts }}"
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_RETRY_WAIT_DURATION: {{ .Values.applicationYaml.resilience4j.retry.instances.emailRetry.waitDuration | quote }}
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_RETRY_EXCEPTIONS_0: {{ .Values.applicationYaml.resilience4j.retry.instances.emailRetry.retryExceptions | quote }}
+
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_ALL_RETRY_MAX_ATTEMPTS: "{{ .Values.applicationYaml.resilience4j.retry.instances.emailAllRetry.maxAttempts }}"
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_ALL_RETRY_WAIT_DURATION: {{ .Values.applicationYaml.resilience4j.retry.instances.emailAllRetry.waitDuration | quote }}
+  RESILIENCE4J_RETRY_INSTANCES_EMAIL_ALL_RETRY_EXCEPTIONS_0: {{ .Values.applicationYaml.resilience4j.retry.instances.emailAllRetry.retryExceptions | quote }}
+
+  TZ: "Asia/Seoul"

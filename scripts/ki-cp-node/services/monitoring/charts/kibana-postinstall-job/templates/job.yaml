@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}-job
+  namespace:  {{ include "efkNamespace" . }}
+spec:
+  ttlSecondsAfterFinished: 10  # Job이 완료된 후 100초 뒤에 자동으로 삭제됩니다
+  template:
+    metadata:
+      name: {{ .Chart.Name }}-pod
+      namespace:  {{ include "efkNamespace" . }}
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      serviceAccountName: {{ .Chart.Name }}-sa
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}-container
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command: ["python"]
+        args: ["main.py"]
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"        
+        - name: KIBANA_NAMESPACE
+          value: {{ include "efkNamespace" . }}
+        - name: KIBANA_HOST
+          value: {{ include "kibanaHost" . }}
+        - name: ELASTIC_CRENDENTIAL_SECRET_NAME
+          value: "{{ .Values.elasticCredentialSecretName }}"
+        - name: KIBANA_DASHBOARD_CONFIGMAP_NAME
+          value: "{{ .Values.kibanaDashboardConfigmapName }}"
+        - name: K8S_CONFIG_PATH
+          value: "{{ .Values.k8sConfigPath }}"
+        - name: TLS_VERIFY
+          value: "{{ .Values.tlsVerify}}"          
+      restartPolicy: OnFailure
+  backoffLimit: 4

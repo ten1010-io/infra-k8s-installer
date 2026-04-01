@@ -1,0 +1,1013 @@
+crds:
+  enabled: true
+
+prometheusOperator:
+  enabled: true
+  serviceMonitor:
+    selfMonitor: false
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  image:
+    registry: quay.io
+    repository: prometheus-operator/prometheus-operator
+    # if not set appVersion field from Chart.yaml is used
+    tag: "v0.76.1"
+    sha: ""
+    pullPolicy: Never
+  admissionWebhooks:
+    patch:
+      image:
+        registry: registry.k8s.io
+        repository: ingress-nginx/kube-webhook-certgen
+        tag: v20221220-controller-v1.5.1-58-g787ea74b6
+        pullPolicy: Never
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations: 
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"     
+  prometheusConfigReloader:
+    # ten1010.io registry 주소가 있는 이미지는 폐쇄망 환경에서 빌드할떄 활용하는 이미지이므로, 외부 접근이 허용된 경우에는 images 를 주석처리한다.
+    image:
+      registry: ten1010.io
+      repository: prometheus/prometheus-config-reloader
+      # if not set appVersion field from Chart.yaml is used
+      tag: "v0.76.1"
+      sha: ""
+
+
+prometheus:
+  enabled: true
+  serviceMonitor:
+    selfMonitor: false
+  service:
+    type: NodePort
+    nodePort: 30091
+  prometheusSpec:
+    scrapeConfigSelector: {}
+    ruleSelector: {}
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    resources:
+      limits:
+        cpu: "2.5"
+        memory: 3600Mi
+      requests:
+        cpu: "1.5"
+        memory: 2400Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+          storageClassName: local-prometheus
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 30Gi
+    image:
+      # ten1010.io registry 주소가 있는 이미지는 폐쇄망 환경에서 빌드할떄 활용하는 이미지이므로, 외부 접근이 허용된 경우에는 images 를 주석처리한다.
+      registry: ten1010.io
+      repository: prometheus/prometheus
+      tag: v2.54.1
+      sha: ""
+    evaluationInterval: "30s"
+    scrapeInterval: "30s"
+    retention: 30d
+    additionalScrapeConfigs:
+      - job_name: 'linkerd-controller'
+        kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names:
+            - 'linkerd'
+            - 'common'
+        relabel_configs:
+        - source_labels:
+          - __meta_kubernetes_pod_container_port_name
+          action: keep
+          regex: admin-http
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          action: replace
+          target_label: component
+    
+      - job_name: 'linkerd-service-mirror'
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels:
+          - __meta_kubernetes_pod_label_linkerd_io_control_plane_component
+          - __meta_kubernetes_pod_container_port_name
+          action: keep
+          regex: linkerd-service-mirror;admin-http$
+        - source_labels: [__meta_kubernetes_pod_container_name]
+          action: replace
+          target_label: component
+    
+      - job_name: 'linkerd-proxy'
+        scrape_interval: 30s
+        kubernetes_sd_configs:
+        - role: pod
+        relabel_configs:
+        - source_labels:
+          - __meta_kubernetes_pod_container_name
+          - __meta_kubernetes_pod_container_port_name
+          - __meta_kubernetes_pod_label_linkerd_io_control_plane_ns
+          action: keep
+          regex: ^linkerd-proxy;linkerd-admin;linkerd$
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: pod
+        # special case k8s' "job" label, to not interfere with prometheus' "job"
+        # label
+        # __meta_kubernetes_pod_label_linkerd_io_proxy_job=foo =>
+        # k8s_job=foo
+        - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_job]
+          action: replace
+          target_label: k8s_job
+        # drop __meta_kubernetes_pod_label_linkerd_io_proxy_job
+        - action: labeldrop
+          regex: __meta_kubernetes_pod_label_linkerd_io_proxy_job
+        # __meta_kubernetes_pod_label_linkerd_io_proxy_deployment=foo =>
+        # deployment=foo
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_linkerd_io_proxy_(.+)
+        # drop all labels that we just made copies of in the previous labelmap
+        - action: labeldrop
+          regex: __meta_kubernetes_pod_label_linkerd_io_proxy_(.+)
+        # __meta_kubernetes_pod_label_linkerd_io_foo=bar =>
+        # foo=bar
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_linkerd_io_(.+)
+        # Copy all pod labels to tmp labels
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+          replacement: __tmp_pod_label_$1
+        # Take `linkerd_io_` prefixed labels and copy them without the prefix
+        - action: labelmap
+          regex: __tmp_pod_label_linkerd_io_(.+)
+          replacement:  __tmp_pod_label_$1
+        # Drop the `linkerd_io_` originals
+        - action: labeldrop
+          regex: __tmp_pod_label_linkerd_io_(.+)
+        # Copy tmp labels into real labels
+        - action: labelmap
+          regex: __tmp_pod_label_(.+)
+    
+          
+      - job_name: 'linkerd'
+        kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names: ['linkerd-viz']
+      
+        relabel_configs:
+        - source_labels:
+          - __meta_kubernetes_pod_container_name
+          action: keep
+          regex: ^prometheus$
+     
+        honor_labels: true
+        metrics_path: '/federate'
+     
+        params:
+          'match[]':
+            - '{job="linkerd-proxy"}'
+            - '{job="linkerd-controller"}'
+
+
+kubeStateMetrics:
+  enabled: true
+kube-state-metrics:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  image:
+    registry: registry.k8s.io
+    repository: kube-state-metrics/kube-state-metrics
+    # If unset use v + .Charts.appVersion
+    tag: "v2.13.0"
+    sha: ""
+    pullPolicy: Never
+  prometheusScrape: true
+  metricLabelsAllowlist:
+    - namespaces=[*]
+    - services=[*]
+    - pods=[*]
+    - deployments=[*]
+    - horizontalpodautoscalers=[*]
+    - nodes=[*]
+
+grafana:
+  serviceMonitor:
+    enabled: false
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  persistence:
+    type: pvc
+    enabled: true
+    storageClassName: local-prometheus
+    existingClaim: grafana-pvc
+  ingress:
+    enabled: false
+
+  defaultDashboardsEnabled: false
+
+  service:
+    type: NodePort
+
+  sidecar:
+    image:
+      # -- The Docker registry
+      registry: quay.io
+      repository: kiwigrid/k8s-sidecar
+      tag: 1.27.4
+      sha: ""
+    imagePullPolicy: Never
+
+  image:
+    registry: docker.io
+    repository: grafana/grafana
+    tag: "7.5.17"
+    pullPolicy: Never
+
+  adminUser: grafana
+  adminPassword: "U7jq,#Hs92=z>7BK"
+
+  grafana.ini:
+    log:
+      level: warn
+    security:
+      allow_embedding: true
+      disable_brute_force_login_protection: true
+    auth:
+      disable_login_form: true
+    server:
+      root_url: "https://grafana-user.cluster9.idc1.ten1010.io"
+    dashboards:
+      default_home_dashboard_path: "/tmp/dashboards/ten-aipub-overview.json"
+    users:
+      default_theme: "light"
+
+      
+prometheus-node-exporter:
+  # node exporter는 클러스터 전체에 배포해야하므로 별도의 nodeSelector 을 추가하지 않는다.
+  #nodeSelector:
+  #  kubernetes.io/hostname: vnode1.pnode8.idc1.ten1010.io
+  #toleration은 추가 필요.
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  image:
+    registry: quay.io
+    repository: prometheus/node-exporter
+    # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+    tag: "v1.8.2"
+    pullPolicy: Never
+    digest: ""
+  prometheus:
+    monitor:
+      enabled: true
+      attachMetadata:
+        node: true
+      relabelings:
+       - sourceLabels: [__meta_kubernetes_pod_node_name]
+         targetLabel: instance
+         action: replace
+
+
+########### Alert rule & Alert Manager
+
+alertmanager:
+  enabled: true
+  serviceMonitor:
+    selfMonitor: false
+  alertmanagerSpec:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    image:
+      # ten1010.io registry 주소가 있는 이미지는 폐쇄망 환경에서 빌드할떄 활용하는 이미지이므로, 외부 접근이 허용된 경우에는 images 를 주석처리한다.
+      registry: ten1010.io
+      repository: prometheus/alertmanager
+      tag: v0.27.0
+      sha: ""
+  config:
+    global:
+      resolve_timeout: 5m
+    inhibit_rules:
+      - source_matchers:
+          - 'severity = critical'
+        target_matchers:
+          - 'severity =~ warning|info'
+        equal:
+          - 'alertname'
+          - 'instance'
+      - source_matchers:
+          - 'severity = warning'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'alertname'
+          - 'instance'
+    route:
+      group_by: ['namespace']
+      group_wait: 30s
+      group_interval: 1m
+      repeat_interval: 720h # prometheus의 retention period와 동일하게 설정.
+      receiver: 'null'
+      routes:
+      - receiver: 'null'
+        matchers:
+          - alertname = "Watchdog"
+      - receiver: 'custom-webhook'
+        matchers:
+          - target = "aipub"
+          - alertname !~ "InfoInhibitor"   
+    receivers:
+    - name: 'null'
+    - name: 'custom-webhook'
+      webhook_configs:
+      #- url: 'http://192.168.2.2:23456/webhook' 
+      - url: 'http://prom-infra-alerter.efk.svc.cluster.local:80/webhook'
+        send_resolved: false
+    templates:
+    - '/etc/alertmanager/config/*.tmpl'
+
+additionalPrometheusRules:
+ - name: aipub-rule
+   groups:
+      - name: scheduler
+        rules:
+        - alert: scheduleStop1h
+          expr: |
+             kube_deployment_spec_replicas{namespace="coaster", deployment="scheduler"} == 0
+          for: 1h
+          labels:
+            severity: info
+            target: aipub
+          annotations:
+            summary: "schedule is stopped for 1h"
+            description: |
+              스케줄러 작동이 중지된지 1시간이 경과되었습니다.
+              스케줄러 작동을 재개해야 리소스 할당과 워크로드 생성이 가능합니다.
+      - name: aipub-master
+        rules:
+        - alert: MasterFault
+          expr: |
+             (
+               kube_node_role{role="control-plane"}* on(node) group_right()
+               sum by (node) (kube_node_status_condition{condition="Ready", status=~"false|unknown"})
+             ) >= 1
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "Master is dead"
+            description: |
+              ({{ $labels.node }}) 마스터노드에 장애가 발생하였습니다. 
+        - alert: HighCPUUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+               ) * 100
+              ) >= 80
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High CPU usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 CPU 사용률이 80%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              CPU 리소스를 확보해주세요 
+        - alert: HighCPUUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+               ) * 100
+              ) >= 90
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High CPU usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 CPU 사용률이 90%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              CPU 리소스를 확보해주세요
+        - alert: HighRAMUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+               ) * 100
+              ) >= 80
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High RAM usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 메모리 사용률이 80%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              메모리 리소스를 확보해주세요
+        - alert: HighRAMUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+               ) * 100
+              ) >= 90
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High RAM usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 메모리 사용률이 90%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              메모리 리소스를 확보해주세요
+        - alert: HighStorageUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+               ) * 100
+              ) >= 60
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High Stroage usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 스토리지 사용률이 60%입니다.
+              사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              스토리지 리소스를 확보해주세요
+        - alert: HighStorageUsageMaster
+          expr: |
+             (
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               ) * on(instance) group_right()
+               (
+                 1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+               ) * 100
+              ) >= 70
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High Stroage usage detected"
+            description: |
+              ({{ $labels.instance }}) 마스터 노드의 스토리지 사용률이 70%입니다.
+              사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              스토리지 리소스를 확보해주세요                                                                          
+      - name: aipub-worker
+        rules:
+        - alert: WorkerFault
+          expr: |
+             (
+               sum by (node) (kube_node_status_condition{condition="Ready", status=~"false|unknown"})
+               unless on(node) 
+                 kube_node_role{role="control-plane"}
+             ) >= 1
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "Worker is dead"
+            description: |
+              ({{ $labels.node }}) 워커노드에 장애가 발생하였습니다. 
+        - alert: HighCPUUsageWorker
+          expr: |
+             (
+               (
+                 1 - avg by(instance) (
+                   rate(node_cpu_seconds_total{mode="idle"}[5m])
+                 )
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 80
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High CPU usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 CPU 사용률이 80%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              CPU 리소스를 확보해주세요 
+        - alert: HighCPUUsageWorker
+          expr: |
+             (
+               (
+                 1 - avg by(instance) (
+                   rate(node_cpu_seconds_total{mode="idle"}[5m])
+                 )
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 90
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High CPU usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 CPU 사용률이 90%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              CPU 리소스를 확보해주세요
+        - alert: HighRAMUsageWorker
+          expr: |
+             (
+               (
+                 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 80
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High RAM usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 메모리 사용률이 80%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              메모리 리소스를 확보해주세요 
+        - alert: HighRAMUsageWorker
+          expr: |
+             (
+               (
+                 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 90
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High RAM usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 메모리 사용률이 90%입니다.
+              사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              메모리 리소스를 확보해주세요              
+        - alert: HighStorageUsageWorker
+          expr: |
+             (
+               (
+                 1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 60
+          for: 1m
+          labels:
+            severity: warning
+            target: aipub
+          annotations:
+            summary: "High Storage usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 스토리지 사용률이 60%입니다.
+              사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              스토리지 리소스를 확보해주세요 
+        - alert: HighStorageUsageWorker
+          expr: |
+             (
+               (
+                 1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+               ) * 100
+               unless on(instance) 
+               label_replace(
+                 kube_node_role{role="control-plane"},
+                 "instance",
+                 "$1",
+                 "node",
+                 "(.*)"
+               )
+             ) >= 70
+          for: 1m
+          labels:
+            severity: critical
+            target: aipub
+          annotations:
+            summary: "High Storage usage detected"
+            description: |
+              ({{ $labels.instance }}) 워커 노드의 스토리지 사용률이 70%입니다.
+              사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+              스토리지 리소스를 확보해주세요
+      #### Prometheus Rules for fractional GPU Allocation 
+      - name: gpu.resource.rules
+        rules:
+        # Regular GPU
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_mig_.*",
+              resource!~".*_block_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1)
+          labels:
+            gpu_type: "gpu"
+   
+        # A30 MIG 1g-4g
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_1g_.*",
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/4)
+          labels:
+            gpu_type: "mig_a30_1g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_2g_.*",
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (2/4)
+          labels:
+            gpu_type: "mig_a30_2g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_3g_.*",
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (3/4)
+          labels:
+            gpu_type: "mig_a30_3g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_4g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (4/4)
+          labels:
+            gpu_type: "mig_a30_4g"
+   
+        # Regular MIG 1g-7g
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_1g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/7)
+          labels:
+            gpu_type: "mig_1g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_2g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (2/7)
+          labels:
+            gpu_type: "mig_2g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_3g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (3/7)
+          labels:
+            gpu_type: "mig_3g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_4g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (4/7)
+          labels:
+            gpu_type: "mig_4g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_5g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (5/7)
+          labels:
+            gpu_type: "mig_5g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_6g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (6/7)
+          labels:
+            gpu_type: "mig_6g"
+   
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_7g_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (7/7)
+          labels:
+            gpu_type: "mig_7g"
+   
+        # Block resources
+        - record: gpu:resource:requests
+          expr: |
+            kube_pod_container_resource_requests{
+              resource=~"ten1010_io_block_.*|ten1010_io_gpu_block_.*"
+            } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/100)
+          labels:
+            gpu_type: "block"
+
+        # Regular GPU
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_mig_.*",
+              resource!~".*_block_.*"
+            }
+          labels:
+            gpu_type: "gpu"
+   
+        # A30 MIG 1g-4g
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_1g_.*"
+            } * (1/4)
+          labels:
+            gpu_type: "mig_a30_1g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_2g_.*"
+            } * (2/4)
+          labels:
+            gpu_type: "mig_a30_2g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_3g_.*"
+            } * (3/4)
+          labels:
+            gpu_type: "mig_a30_3g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource=~".*_nvidia_a30_.*",
+              resource=~".*_a30_.*",
+              resource=~".*_4g_.*"
+            } * (4/4)
+          labels:
+            gpu_type: "mig_a30_4g"
+   
+        # Regular MIG 1g-7g
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_1g_.*"
+            } * (1/7)
+          labels:
+            gpu_type: "mig_1g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_2g_.*"
+            } * (2/7)
+          labels:
+            gpu_type: "mig_2g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_3g_.*"
+            } * (3/7)
+          labels:
+            gpu_type: "mig_3g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_4g_.*"
+            } * (4/7)
+          labels:
+            gpu_type: "mig_4g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_5g_.*"
+            } * (5/7)
+          labels:
+            gpu_type: "mig_5g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_6g_.*"
+            } * (6/7)
+          labels:
+            gpu_type: "mig_6g"
+   
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_gpu_.*",
+              resource!~".*_nvidia_a30_.*",
+              resource=~".*_mig_.*",
+              resource=~".*_7g_.*"
+            } * (7/7)
+          labels:
+            gpu_type: "mig_7g"
+   
+        # Block resources
+        - record: gpu:resource:node
+          expr: |
+            kube_node_status_allocatable{
+              resource=~"ten1010_io_block_.*|ten1010_io_gpu_block_.*"
+            } * (1/100)
+          labels:
+            gpu_type: "block"
+        - expr: DCGM_FI_DEV_GPU_TEMP{}
+          record: gpu:resource:gpu_temp
+        - expr: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{}
+          record: gpu:resource:tensor_core
+        - expr: DCGM_FI_PROF_DRAM_ACTIVE{}
+          record: gpu:resource:dram_active
+        - expr: DCGM_FI_DEV_POWER_USAGE{}
+          record: gpu:resource:power
+        - expr: DCGM_FI_PROF_SM_ACTIVE{}
+          record: gpu:resource:sm_active
+        - expr: DCGM_FI_DEV_GPU_UTIL{}
+          record: gpu:resource:util
+
+defaultRules:
+  create: false
+kubernetesServiceMonitors:
+  enabled: false  

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-backend-batch.labels" . | nindent 4 }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.profiles.active | quote }}
+
+  SPRING_DATASOURCE_BATCH_DRIVER_CLASS_NAME: {{ .Values.applicationYaml.spring.dataSource.batch.driverClassName | quote }}
+  SPRING_DATASOURCE_BATCH_URL: {{ .Values.applicationYaml.spring.dataSource.batch.url | quote }}
+  SPRING_DATASOURCE_BATCH_USERNAME: {{ .Values.applicationYaml.spring.dataSource.batch.username | quote }}
+
+  SPRING_JPA_HIBERNATE_DDL_AUTO: {{ .Values.applicationYaml.spring.jpa.hibernate.ddlAuto | quote }}
+
+  APP_GATEWAY_BACKEND_URL: {{ .Values.applicationYaml.app.gateway.backendUrl | quote }}
+  APP_GATEWAY_USERNAME: {{ .Values.applicationYaml.app.gateway.username | quote }}
+
+  APP_SCHEDULE_INTERVAL_CREATE_HARBOR_JOB: {{ .Values.applicationYaml.app.schedule.interval.createHarborJob | quote }}
+  APP_SCHEDULE_INTERVAL_CREATE_K8S_JOB: {{ .Values.applicationYaml.app.schedule.interval.createK8sJob | quote }}
+  APP_SCHEDULE_INTERVAL_CREATE_KEYCLOAK_JOB: {{ .Values.applicationYaml.app.schedule.interval.createKeycloakJob | quote }}
+  APP_SCHEDULE_INTERVAL_DELETE_HARBOR_JOB: {{ .Values.applicationYaml.app.schedule.interval.deleteHarborJob | quote }}
+  APP_SCHEDULE_INTERVAL_DELETE_K8S_JOB: {{ .Values.applicationYaml.app.schedule.interval.deleteK8sJob | quote }}
+  APP_SCHEDULE_INTERVAL_DISABLE_KEYCLOAK_JOB: {{ .Values.applicationYaml.app.schedule.interval.disableKeycloakJob | quote }}
+
+  TZ: "Asia/Seoul"

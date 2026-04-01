@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: persistent-linkerd-exporter
+subjects:
+- kind: ServiceAccount
+  name: persistent-linkerd-exporter
+  namespace:  {{ include "promstackNamespace" . }}
+roleRef:
+  kind: ClusterRole
+  name: persistent-linkerd-exporter
+  apiGroup: rbac.authorization.k8s.io

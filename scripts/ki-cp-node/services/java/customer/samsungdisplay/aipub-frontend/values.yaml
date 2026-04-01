@@ -1,0 +1,80 @@
+replicaCount: 1
+
+image:
+  repository: aipub-web
+  pullPolicy: IfNotPresent
+  tag: "1.3.4-hotfix.11"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubVersion: "v4.1.0"
+  aipubTitle: "AI Pub"
+  aipubApiUrl: https://cubicops.samsungdisplay.net
+  aipubBaseHost: samsungdisplay.net
+  aipubLogoutRedirectUrl: https://cubicops.samsungdisplay.net/welcome
+  aipubBrand: "aipub"
+  aipubUseMock: "false"
+  aipubDocsUrl: https://cubicops.samsungdisplay.net/docs
+  aipubHarborUrl: https://aipub-harbor.cubicops.samsungdisplay.net
+  aipubMode: ops
+  aipubUseSso: "false"
+  aipubNodeUrl: https://cubicops.samsungdisplay.net/alloc
+  aipubNoticeUrl: https://cubicops.samsungdisplay.net/notice
+  aipubReportUrl: https://cubicops.samsungdisplay.net/report
+  aipubKibanaUrl: https://cubicops.samsungdisplay.net/kibana
+  aipubStreamlitUrl: https://cubicops.samsungdisplay.net/streamlit
+  aipubSshPortMin: "12000"
+  aipubSshPortMax: "12100"
+  aipubVolumes: '[{"type":"nfs","value":"nfs"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html

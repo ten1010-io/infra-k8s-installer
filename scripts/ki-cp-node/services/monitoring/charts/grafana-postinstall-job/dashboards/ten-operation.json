@@ -1,0 +1,5752 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "iteration": 1753358387557,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 20,
+      "panels": [],
+      "title": "요약",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": " 오퍼레이션이 생성할 수 있는 최소/최대 파드(레플리카) 수와 현재 파드(레플리카)의 갯수",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "최소 레플리카"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "최대 레플리카"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "id": 32,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "max by (label_operation_aipub_ten1010_io_owner) (kube_horizontalpodautoscaler_spec_min_replicas{namespace=\"$namespace\"}\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\n\r\n\r\n\r\n* on(horizontalpodautoscaler, namespace) group_right(label_operation_aipub_ten1010_io_owner)\r\n(\n\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\n))\n",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최소 레플리카",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": " \r\nmax by (label_operation_aipub_ten1010_io_owner) (kube_deployment_spec_replicas{namespace=\"$namespace\"}\r\n\r\n\r\n* on(deployment) group_left(label_operation_aipub_ten1010_io_owner) (\r\nkube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", deployment=\"$deployment\", namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\n) )",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "현재 레플리카",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "max by (label_operation_aipub_ten1010_io_owner) (kube_horizontalpodautoscaler_spec_max_replicas{namespace=\"$namespace\"}\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\n\r\n\r\n\r\n* on(horizontalpodautoscaler) group_right(label_operation_aipub_ten1010_io_owner)\r\n(\n\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))\n",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최대 레플리카",
+          "refId": "C"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "레플리카 갯수",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "오퍼레이션이 배포된 후 시간",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "id": 27,
+      "interval": "30s",
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "  max by (namespace, label_operation_aipub_ten1010_io_owner) (\r\n    last_over_time(timestamp(kube_deployment_created{namespace=\"$namespace\"})[$__range:30s])\r\n   * on(deployment) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", deployment=\"$deployment\", namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\n\r\n))\n-\n\r\n\r\nmax by (namespace, label_operation_aipub_ten1010_io_owner) (\r\n    last_over_time(kube_deployment_created{namespace=\"$namespace\"}[$__range])\r\n   * on(deployment) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", deployment=\"$deployment\",  namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\n\r\n))",
+          "interval": "",
+          "legendFormat": "rps",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "운영 시간",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP의 요청에 대한 50%의 응답시간 백분위",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "id": 15,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.5,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", namespace!=\"\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", namespace!=\"\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 5m\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", namespace!=\"\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m])\n)) / 300\r\n  )\r\n)\n\n\r\r",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최근",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.5,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset $__range\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range])\n)) / $__range_s\r\n  )\r\n)\n",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "P50 응답시간",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP 응답들의 상태 유형 2XX,3XX 응답 수 요약",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "3.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 29,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (status_code) (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", deployment=~\"$deployment\", pod=\"\", node=\"\", status_code=~\"2.*|3.*\", le=\"+Inf\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", deployment=~\"$deployment\", pod=\"\", node=\"\", status_code=~\"2.*|3.*\", le=\"+Inf\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", deployment=~\"$deployment\", pod=\"\", node=\"\", status_code=~\"2.*|3.*\", le=\"+Inf\"}[$__range])\n)) ",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{status_code}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "응답-2XX ,3XX",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "스케일링 가능 상태 : 스케일링을 위한 메트릭 수집이 가능하여 스케일링이 동작 할수 있는 상태\n\n스케일링 활성화 : 수집된 메트릭을 통해 레플리카의 스케일링이 작동 중인 상태\n\n스케일링 제한됨 : 최대/최소 레플리카수에 도달하여 더이상 스케일링이 불가능한 상태",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "스케일 가능 상태(AbleToScale)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-RdYlGr"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "from": "",
+                    "id": 1,
+                    "text": "가능",
+                    "to": "",
+                    "type": 1,
+                    "value": "1"
+                  },
+                  {
+                    "from": "",
+                    "id": 2,
+                    "text": "불가능",
+                    "to": "",
+                    "type": 1,
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-RdYlGr"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "스케일 활성 상태(ScalingActive)"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "from": "",
+                    "id": 1,
+                    "text": "활성",
+                    "to": "",
+                    "type": 1,
+                    "value": "1"
+                  },
+                  {
+                    "from": "",
+                    "id": 2,
+                    "text": "비활성",
+                    "to": "",
+                    "type": 1,
+                    "value": "0"
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-RdYlGr"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "스케일 제한 상태(ScalingLimited)"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "from": "",
+                    "id": 1,
+                    "text": "허용",
+                    "to": "",
+                    "type": 1,
+                    "value": "0"
+                  },
+                  {
+                    "from": "",
+                    "id": 2,
+                    "text": "제한",
+                    "to": "",
+                    "type": 1,
+                    "value": "1"
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-GrYlRd"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 2,
+        "x": 16,
+        "y": 1
+      },
+      "id": 42,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "min(\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=\"$namespace\", condition=\"AbleToScale\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)  \r\n\r\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "스케일 가능 상태(AbleToScale)",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "min(\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=\"$namespace\", condition=\"ScalingActive\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\r\n\r\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "스케일 활성 상태(ScalingActive)",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=\"$namespace\", condition=\"ScalingLimited\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n) \r\n\r\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "스케일 제한 상태(ScalingLimited)",
+          "refId": "C"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "HPA 상태",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "columns": [],
+      "datasource": null,
+      "description": "레플리카의 스케일링을 위해 활용되는 메트릭의 기준치와 현재 값 리스트",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "id": 45,
+      "options": {
+        "showHeader": true
+      },
+      "pageSize": null,
+      "pluginVersion": "7.5.17",
+      "showHeader": true,
+      "sort": {
+        "col": 0,
+        "desc": true
+      },
+      "styles": [
+        {
+          "$$hashKey": "object:1459",
+          "alias": "Time",
+          "align": "auto",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "date"
+        },
+        {
+          "$$hashKey": "object:1460",
+          "alias": "",
+          "align": "left",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "metric_name",
+          "preserveFormat": false,
+          "thresholds": [],
+          "type": "string",
+          "unit": "short",
+          "valueMaps": [
+            {
+              "$$hashKey": "object:1708",
+              "text": "cpu",
+              "value": "node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate"
+            }
+          ]
+        },
+        {
+          "$$hashKey": "object:1794",
+          "alias": "기준치",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "$$hashKey": "object:1805",
+          "alias": "현재값",
+          "align": "auto",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(\r\n  (kube_horizontalpodautoscaler_spec_target_metric{namespace=\"$namespace\"})\r\n\r\n)\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n)",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  (kube_horizontalpodautoscaler_status_target_metric{namespace=\"$namespace\"})\r\n\r\n)\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "HPA 메트릭",
+      "transform": "table",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "metric_name"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Value #A": false,
+              "container": true,
+              "container 1": true,
+              "container 2": true,
+              "endpoint": true,
+              "endpoint 1": true,
+              "endpoint 2": true,
+              "horizontalpodautoscaler": true,
+              "horizontalpodautoscaler 1": true,
+              "horizontalpodautoscaler 2": true,
+              "instance": true,
+              "instance 1": true,
+              "instance 2": true,
+              "job": true,
+              "job 1": true,
+              "job 2": true,
+              "label_operation_aipub_ten1010_io_owner": true,
+              "label_operation_aipub_ten1010_io_owner 1": true,
+              "label_operation_aipub_ten1010_io_owner 2": true,
+              "metric_target_type": true,
+              "metric_target_type 1": true,
+              "metric_target_type 2": true,
+              "namespace": true,
+              "namespace 1": true,
+              "namespace 2": true,
+              "pod": true,
+              "pod 1": true,
+              "pod 2": true,
+              "service": true,
+              "service 1": true,
+              "service 2": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value #A": "기준치",
+              "Value #B": "현재 값",
+              "instance 2": "",
+              "metric_name": "메트릭 이름"
+            }
+          }
+        }
+      ],
+      "type": "table-old"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP의 요청에 대한 95%의 응답시간 백분위",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 3
+      },
+      "id": 16,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.95,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\",  pod=\"\", node=\"\"} offset 5m\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m])\n)) / 300\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최근",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.95,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range])\n)) / $__range_s\r\n  )\r\n)",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "P95 응답시간",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "오퍼레이션이 배포한 레플리카 중 서비스 가능한 레플리카와 서비스 불가능한 레플리카 수",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "비가용"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "가용"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 5
+      },
+      "id": 33,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (kube_deployment_status_replicas_available{namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\n* on(deployment) group_right(label_operation_aipub_ten1010_io_owner)\nlabel_replace(\n  kube_deployment_labels{namespace=\"$namespace\", deployment=\"$deployment\", label_operation_aipub_ten1010_io_owner=\"$operation\", job!=\"kubernetes-service-endpoints\"},\n  \"operation\", \"$1\", \"label_operation_aipub_ten1010_io_owner\", \"(.+)\"\n))",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "가용",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (kube_deployment_status_replicas_unavailable{namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\n* on(deployment) group_right(label_operation_aipub_ten1010_io_owner)\nlabel_replace(\n  kube_deployment_labels{namespace=\"$namespace\", label_operation_aipub_ten1010_io_owner=\"$operation\", deployment=\"$deployment\", job!=\"kubernetes-service-endpoints\"},\n  \"operation\", \"$1\", \"label_operation_aipub_ten1010_io_owner\", \"(.+)\"\n))",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "비가용",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "레플리카 상태",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "최근 및 선택된 시간 범위(구간)에 대한 초당 평균 HTTP 요청 수",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 4,
+        "y": 5
+      },
+      "id": 48,
+      "interval": "30s",
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum((max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 5m\r\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m])\n)) / 300)",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최근",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum((max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", deployment=\"$deployment\", operation=\"$operation\", pod=\"\", node=\"\"}[$__range])\n)) / $__range_s)",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "초 당 요청수",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "최근 및 선택된 시간 범위(구간) 동안의 HTTP 요청의 합",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 2,
+        "x": 6,
+        "y": 5
+      },
+      "id": 34,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum (max_over_time(request_operation_total{namespace=\"$namespace\", deployment=\"$deployment\", operation=\"$operation\", pod=\"\", node=\"\"}[1h]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 1h\r\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", deployment=\"$deployment\",pod=\"\", node=\"\"}[1h])\n))",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "1시간",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum (max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", deployment=\"$deployment\", operation=\"$operation\", pod=\"\", node=\"\"}[$__range])\n))",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "누적요청건수",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP의 요청에 대한 99%의 응답시간 백분위",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 5
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 5m\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m])\n)) / 300\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최근",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\",  pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range])\n)) / $__range_s\r\n  )\r\n)\n",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "P99 응답시간",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP 응답들의 상태 유형 4XX,5XX 응답 수 요약",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "4.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "5.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 5
+      },
+      "id": 30,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (status_code) (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", deployment=~\"$deployment\",  pod=\"\", node=\"\", status_code=~\"4.*|5.*\", le=\"+Inf\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", pod=\"\", deployment=~\"$deployment\", node=\"\", status_code=~\"4.*|5.*\", le=\"+Inf\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=~\"$operation\", deployment=~\"$deployment\", pod=\"\", node=\"\", status_code=~\"4.*|5.*\", le=\"+Inf\"}[$__range])\n)) ",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{status_code}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "응답-4XX,5XX",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "선택된 시간 범위 내 HTTP의 요청에 대한 99.99%의 응답시간 백분위",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 7
+      },
+      "id": 18,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.9999,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 5m\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\",  pod=\"\", node=\"\"}[5m])\n)) \r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "최근",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.9999,\r\n  sum by (le, operation) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[$__range])\n)) / $__range_s\r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "구간",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "P9999 응답시간",
+      "type": "stat"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 50,
+      "panels": [
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "linear",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "opacity"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "오퍼레이션의 상태에 대한 시간변화 (초록색이 진할 수록 정상 레플리카의 수가 많다.)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 10
+          },
+          "heatmap": {},
+          "hideZeroBuckets": false,
+          "highlightCards": true,
+          "id": 52,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "\nmax by (label_operation_aipub_ten1010_io_owner, namespace) \n(\n(((kube_deployment_status_replicas_available{ app_kubernetes_io_instance=\"\", deployment=\"$deployment\", namespace=\"$namespace\"}) == (kube_deployment_status_replicas{ app_kubernetes_io_instance=\"\", namespace=\"$namespace\"}))*0+2)\n*\non(deployment, namespace) group_left(label_operation_aipub_ten1010_io_owner)\n\n(\n  max by (deployment, namespace, label_operation_aipub_ten1010_io_owner) (\n    kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\"}\n  )\n)\n)\nor\nmax by (label_operation_aipub_ten1010_io_owner, namespace) \n(\n(((kube_deployment_status_replicas_unavailable{ app_kubernetes_io_instance=\"\", deployment=\"$deployment\", namespace=\"$namespace\"}) == (kube_deployment_status_replicas{ app_kubernetes_io_instance=\"\", deployment=\"$deployment\", namespace=\"$namespace\"}))*0-1)\n*\non(deployment, namespace) group_left(label_operation_aipub_ten1010_io_owner)\n\n(\n  max by (deployment, namespace, label_operation_aipub_ten1010_io_owner) (\n    kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\"}\n  )\n)\n) \nor\nmax by (label_operation_aipub_ten1010_io_owner, namespace) \n(\n(((kube_deployment_status_replicas_unavailable{ app_kubernetes_io_instance=\"\", namespace=\"$namespace\", deployment=\"$deployment\"} < kube_deployment_status_replicas{ app_kubernetes_io_instance=\"\", namespace=\"$namespace\", deployment=\"$deployment\"}))*0+1)\n*\non(deployment, namespace) group_left(label_operation_aipub_ten1010_io_owner)\n\n(\n  max by (deployment, namespace, label_operation_aipub_ten1010_io_owner) (\n    kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\"}\n  )\n)\n) \n",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "오퍼레이션 상태",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "short",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "spectrum"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "초당 요청 수 (빨간색일수록 요청수가 많고, 초록색일 수록 요청수가 적다, 요청이 없는 경우 표시되지 않음)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 10
+          },
+          "heatmap": {},
+          "hideZeroBuckets": true,
+          "highlightCards": true,
+          "id": 58,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum by (operation, namespace) (\nincrease(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "RPS",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "none",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#E02F44",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": 10,
+            "min": 0,
+            "mode": "opacity"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "오퍼레이션의 갯수에 대한 시간변화 (붉은색이 진할 수록 레플리카의 수가 많다.)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 13
+          },
+          "heatmap": {},
+          "hideZeroBuckets": false,
+          "highlightCards": true,
+          "id": 53,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "\nmax by (label_operation_aipub_ten1010_io_owner, namespace) \n(\n((kube_deployment_status_replicas_available{ app_kubernetes_io_instance=\"\", namespace=\"$namespace\", deployment=\"$deployment\"}))\n*\non(deployment, namespace) group_left(label_operation_aipub_ten1010_io_owner)\n\n(\n  max by (deployment, namespace, label_operation_aipub_ten1010_io_owner) (\n    kube_deployment_labels{label_operation_aipub_ten1010_io_owner=\"$operation\"}\n  )\n)\n)",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "오퍼레이션 레플리카",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "short",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "spectrum"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "50% 응답 백분위 (빨간색일수록 응답시간이 느리고, 초록색일수록 빠르다, 요청이 없는 경우 표시되지 않음)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 13
+          },
+          "heatmap": {},
+          "hideZeroBuckets": true,
+          "highlightCards": true,
+          "id": 59,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.5,\r\nsum by (operation, namespace, le) (\nincrease(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[5m]))\n)",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "P50",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "none",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "linear",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": 1,
+            "min": 0,
+            "mode": "opacity"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "HPA 확장 가능 상태에 대한 변화 (초록색인 경우 확장 가능 상태)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 16
+          },
+          "heatmap": {},
+          "hideZeroBuckets": false,
+          "highlightCards": true,
+          "id": 55,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "min by (label_operation_aipub_ten1010_io_owner, namespace) (\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=\"$namespace\", condition=\"AbleToScale\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)  \r\n\r\n\r\n* on(horizontalpodautoscaler, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "HPA 확장가능",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "B"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "short",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "spectrum"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "95% 응답 백분위 (빨간색일수록 응답시간이 느리고, 초록색일수록 빠르다, 요청이 없는 경우 표시되지 않음)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 16
+          },
+          "heatmap": {},
+          "hideZeroBuckets": true,
+          "highlightCards": true,
+          "id": 60,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.95,\r\nsum by (operation, namespace, le) (\nincrease(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", pod=\"\", deployment=\"$deployment\", node=\"\"}[5m]))\n)",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "P95",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "none",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "linear",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": 1,
+            "min": 0,
+            "mode": "opacity"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "HPA 확장 활성 상태에 대한 변화 (초록색인 경우 확장 활성 상태)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 19
+          },
+          "heatmap": {},
+          "hideZeroBuckets": false,
+          "highlightCards": true,
+          "id": 56,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "min by (label_operation_aipub_ten1010_io_owner, namespace) (\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=\"$namespace\", condition=\"ScalingActive\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)  \r\n\r\n\r\n* on(horizontalpodautoscaler, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "HPA 확장활성",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "short",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "spectrum"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "99% 응답 백분위 (빨간색일수록 응답시간이 느리고, 초록색일수록 빠르다, 요청이 없는 경우 표시되지 않음)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 19
+          },
+          "heatmap": {},
+          "hideZeroBuckets": true,
+          "highlightCards": true,
+          "id": 61,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "histogram_quantile(0.99,\r\nsum by (operation, namespace, le) (\nincrease(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=\"$operation\", pod=\"\", deployment=\"$deployment\", node=\"\"}[5m]))\n)",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "P99",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "none",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#AD0317",
+            "colorScale": "linear",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": 1,
+            "min": 0,
+            "mode": "opacity"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "HPA 확장 제한 상태에 대한 변화 (빨간색인 경우 확장 제한)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 0,
+            "y": 22
+          },
+          "heatmap": {},
+          "hideZeroBuckets": false,
+          "highlightCards": true,
+          "id": 57,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "min by (label_operation_aipub_ten1010_io_owner, namespace) (\r\n  (kube_horizontalpodautoscaler_status_condition{namespace=~\"$namespace\", condition=\"ScalingLimited\", status=\"true\"})\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)  \r\n\r\n\r\n* on(horizontalpodautoscaler, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "HPA 확장 제한",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "B"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "short",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        },
+        {
+          "cards": {
+            "cardPadding": null,
+            "cardRound": null
+          },
+          "color": {
+            "cardColor": "#73BF69",
+            "colorScale": "sqrt",
+            "colorScheme": "interpolateRdYlGn",
+            "exponent": 0.5,
+            "max": null,
+            "min": 0,
+            "mode": "spectrum"
+          },
+          "dataFormat": "tsbuckets",
+          "datasource": null,
+          "description": "실패 응답의 수 (빨간색일수록 실패 응답이 많고, 초록색일수록 적다, 실패 응답이 없는 경우 표시되지 않음)",
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 3,
+            "w": 12,
+            "x": 12,
+            "y": 22
+          },
+          "heatmap": {},
+          "hideZeroBuckets": true,
+          "highlightCards": true,
+          "id": 62,
+          "legend": {
+            "show": false
+          },
+          "pluginVersion": "7.5.17",
+          "reverseYBuckets": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum by (operation, namespace) (increase(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\", status_code=~\"4.*|5.*\", le=\"+Inf\"}[5m]))",
+              "format": "time_series",
+              "instant": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "실패응답",
+              "refId": "A"
+            }
+          ],
+          "tooltip": {
+            "show": true,
+            "showHistogram": false
+          },
+          "type": "heatmap",
+          "xAxis": {
+            "show": true
+          },
+          "xBucketNumber": null,
+          "xBucketSize": null,
+          "yAxis": {
+            "decimals": null,
+            "format": "none",
+            "logBase": 1,
+            "max": null,
+            "min": null,
+            "show": true,
+            "splitFactor": null
+          },
+          "yBucketBound": "middle",
+          "yBucketNumber": null,
+          "yBucketSize": null
+        }
+      ],
+      "title": "요약 타임라인",
+      "type": "row"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 64,
+      "panels": [],
+      "title": "시스템",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "hiddenSeries": false,
+      "id": 66,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:1563",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:1564",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\"}[5m])) by (namespace, pod)\n* on(pod) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "max (\n    kube_pod_container_resource_requests{namespace=\"$namespace\", resource=\"cpu\"}\n    * on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n\r\n)\n)\n",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "requests",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "max (\n    kube_pod_container_resource_limits{namespace=~\"$namespace\", resource=\"cpu\"}\n    * on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n\r\n)\n)",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "limits",
+          "legendLink": null,
+          "refId": "C",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "CPU Utilization",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3096",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3097",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "hiddenSeries": false,
+      "id": 68,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:3831",
+          "alias": "requests",
+          "color": "#F2495C",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:3832",
+          "alias": "limits",
+          "color": "#FF9830",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(container_memory_working_set_bytes{ namespace=\"$namespace\", container!=\"\", image!=\"\"}) by (namespace, pod)\n*on(pod) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "max (\n    kube_pod_container_resource_requests{namespace=\"$namespace\", resource=\"memory\"}\n*on(pod) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)\n)\n",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "requests",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "max (\n    kube_pod_container_resource_limits{namespace=\"$namespace\", resource=\"memory\"}\n*on(pod) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)\n)\n",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "limits",
+          "legendLink": null,
+          "refId": "C",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Memory Utilization",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3656",
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3657",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "hiddenSeries": false,
+      "id": 86,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum( gpu:resource:gpu_temp * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE)\nor\n \n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:gpu_temp\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Temperature",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "celsius",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU  전력 소모량",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "hiddenSeries": false,
+      "id": 80,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum( gpu:resource:power * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE)\nor\n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:power\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Power Usage",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "watt",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "연산 자원의 시간 활용률",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 25
+      },
+      "hiddenSeries": false,
+      "id": 85,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum( gpu:resource:util * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE) / 100.0\nor\n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:util\n) / 100.0",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "연산 자원의 공간 활용도",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 25
+      },
+      "hiddenSeries": false,
+      "id": 87,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum( gpu:resource:sm_active * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE) \nor\n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:sm_active\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "SM Active",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU의 연산자원 중 텐서코어의 활용도",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 25
+      },
+      "hiddenSeries": false,
+      "id": 84,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(  gpu:resource:tensor_core  * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE)\nor\n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:tensor_core\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Tensor Core Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU 메모리의 읽고 쓰기 시간을 합한 시간의 비율",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "hiddenSeries": false,
+      "id": 83,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:640",
+          "alias": "requests",
+          "color": "#F2495C",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:641",
+          "alias": "limits",
+          "color": "#FF9830",
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}) by (exported_pod, modelName, gpu)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum( gpu:resource:dram_active * on(UUID, GPU_I_ID) group_left(exported_pod, exported_namespace, exported_container) sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})) by (exported_pod, modelName, gpu, GPU_I_PROFILE)\nor\n(\n  GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"} * 0 \n  + on(UUID, GPU_I_ID) \n  group_left() \n  gpu:resource:dram_active\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}-{{modelName}}({{gpu}})-{{GPU_I_PROFILE}}",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } \r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_requests{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  } / 100.0\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_gpu_.*\"\r\n  } * 100\r\n)\r\nor\r\n(\r\n  kube_pod_container_resource_limits{\r\n    job=\"kube-state-metrics\",\r\n    cluster=\"$cluster\",\r\n    namespace=\"$namespace\",\r\n    pod=\"$pod\",\r\n    resource=~\".*ten1010_io_block_.*\"\r\n  }\r\n)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_UTIL_LIMIT{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Memory R/W Utilization",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:674",
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:675",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "GPU 메모리 활용 크기",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "hiddenSeries": false,
+      "id": 82,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:575",
+          "alias": "requests",
+          "color": "#F2495C",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        },
+        {
+          "$$hashKey": "object:576",
+          "alias": "limits",
+          "color": "#FF9830",
+          "dashes": true,
+          "fill": 0,
+          "hideTooltip": true,
+          "legend": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (exported_pod, UUID, gpu, modelName, GPU_I_PROFILE) (\n  GPU_POD_MEMORY{\n    exported_namespace=\"$namespace\",\n    exported_pod=~\"$deployment.*\"\n  }\n  * on(exported_namespace, exported_pod, UUID) group_left(GPU_I_PROFILE)\n  (\n    sgn(\n      GPU_POD_UTIL_LIMIT{\n        exported_namespace=\"$namespace\",\n        exported_pod=~\"$deployment.*\"\n      }\n    )\n    unless\n    label_replace(\n      sgn(\n        MIG_POD_ALLOCATED{\n          exported_namespace=\"$namespace\",\n          exported_pod=~\"$deployment.*\"\n        }\n      ),\n      \"UUID\", \"$1\", \"MIG_UUID\", \"(.+)\"\n    )\n    * on (exported_namespace, exported_pod, UUID) group_left()\n    sgn(\n      GPU_POD_UTIL_LIMIT{\n        exported_namespace=\"$namespace\",\n        exported_pod=~\"$deployment.*\"\n      }\n    )\n  )\n)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}{{modelName}}-({{gpu_2}})-{{GPU_I_PROFILE}}",
+          "legendLink": null,
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  GPU_POD_MEMORY{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}\n  * on() \n  group_left(GPU_I_PROFILE, gpu_2) \n  label_replace(\n    label_replace(\n      clamp_min(sgn(MIG_POD_ALLOCATED{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}), 0), \n      \"UUID\", \"$1\", \"MIG_UUID\", \"(.*)\"\n    ),\n    \"gpu_2\", \"$1\", \"gpu\", \"(.*)\"\n  )\n) by (exported_pod, modelName, gpu, GPU_I_PROFILE, gpu_2)\nor\nsum by (exported_pod, modelName, gpu) (\n  GPU_POD_MEMORY{exported_namespace=\"$namespace\", exported_pod=~\"$deployment.*\"}\n)",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "{{exported_pod}}{{modelName}}-({{gpu_2}})-{{GPU_I_PROFILE}}",
+          "legendLink": null,
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "max(GPU_POD_MEMORY_LIMIT{exported_namespace=\"$namespace\",  exported_pod=~\"$deployment.*\"})",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "limits",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "GPU Memory Usage",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "(.MIG.1)",
+            "renamePattern": ""
+          }
+        }
+      ],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:613",
+          "format": "bytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:614",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 39
+      },
+      "hiddenSeries": false,
+      "id": 70,
+      "interval": "1m",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(sum by (pod) (irate(container_network_receive_bytes_total{namespace=~\"$namespace\"}[$__rate_interval])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Network Receive Bandwidth",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3504",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3505",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 39
+      },
+      "hiddenSeries": false,
+      "id": 72,
+      "interval": "1m",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(sum by (pod) (irate(container_network_transmit_bytes_total{namespace=~\"$namespace\"}[$__rate_interval])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{pod}}",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Network Transmit Bandwidth",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3714",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3715",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "decimals": -1,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 46
+      },
+      "hiddenSeries": false,
+      "id": 74,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "ceil(sum (rate(container_fs_reads_total{container!=\"\", namespace=~\"$namespace\",}[5m])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reads",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "ceil(sum (rate(container_fs_writes_total{container!=\"\", namespace=~\"$namespace\",}[5m])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Writes",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Storage IOPS",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3562",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3563",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 46
+      },
+      "hiddenSeries": false,
+      "id": 76,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum (rate(container_fs_reads_bytes_total{container!=\"\", namespace=~\"$namespace\"}[5m])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reads",
+          "legendLink": null,
+          "refId": "A",
+          "step": 10
+        },
+        {
+          "exemplar": true,
+          "expr": "sum (rate(container_fs_writes_bytes_total{container!=\"\", namespace=~\"$namespace\"}[5m])\n*on(pod, namespace) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=~\"$operation\", namespace=~\"$namespace\"}\r\n\r\n)\n)",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Writes",
+          "legendLink": null,
+          "refId": "B",
+          "step": 10
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Storage Throughput",
+      "tooltip": {
+        "shared": false,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3772",
+          "format": "Bps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": 0,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3773",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": false
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 53
+      },
+      "id": 22,
+      "panels": [],
+      "title": "요청",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "각 레플리카에 전달되는 요청의 분배 비율",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 54
+      },
+      "id": 12,
+      "interval": "$interval",
+      "options": {
+        "displayLabels": [
+          "value"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "values": [
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod!=\"\", node=\"\"}[$__range]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\",  pod!=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\",  pod!=\"\", node=\"\"}[$__range])\n) > 0",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "title": "요청 분배 비율 ",
+      "type": "piechart"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "초당 요청 수 기준치 및 초당 요청 수의 시간에 따른 변화 정보",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "test3-d9fd74477-gdtc4"
+            },
+            "properties": [
+              {
+                "id": "displayName"
+              }
+            ]
+          }
+        ]
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 54
+      },
+      "hiddenSeries": false,
+      "id": 46,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:1064",
+          "alias": "Target RPS",
+          "color": "#F2495C",
+          "dashes": true,
+          "fill": 0,
+          "fillGradient": 0,
+          "lines": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "\r\n(\r\n  (kube_horizontalpodautoscaler_spec_target_metric{namespace=\"$namespace\", metric_name=\"rps\"})\r\n\r\n)\n* on(horizontalpodautoscaler, namespace) group_left()\n(\n  kube_horizontalpodautoscaler_info{scaletargetref_name=\"$deployment\"}\n)\n\r\n* on(horizontalpodautoscaler) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"}\r\n)",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Target RPS",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum((max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[1m]) -   \n(\r\n    request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 1m\n    or\r\n    0 * max_over_time(request_operation_total{namespace=\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[1m])\n))) / (60*sum by (operation) (kube_deployment_status_replicas_available{namespace=\"$namespace\", deployment=\"$deployment\", job!=\"kubernetes-service-endpoints\"}))",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "초 당 요청수",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transformations": [],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:880",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:881",
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "30초 주기로 갱신되는 각 레플리카에 전달된 요청 건수",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "A"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "test3-d9fd74477-gdtc4"
+            },
+            "properties": [
+              {
+                "id": "displayName"
+              }
+            ]
+          }
+        ]
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "hiddenSeries": false,
+      "id": 3,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:1064",
+          "alias": "Total Request",
+          "color": "#F2495C",
+          "dashes": true,
+          "fill": 0,
+          "fillGradient": 0,
+          "lines": true,
+          "linewidth": 2,
+          "stack": false
+        }
+      ],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(\r\n  request_total{namespace=\"$namespace\", direction=\"inbound\", target_port!=\"4191\"} - (request_total{namespace=\"$namespace\", direction=\"inbound\", target_port!=\"4191\"} offset $interval)\n\r\n\r\n) by (deployment)\r\n* on(deployment) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n\r\n  kube_deployment_labels{deployment=\"$deployment\", label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\r\n\r\n)\nor kube_deployment_created{namespace=\"$namespace\", deployment=~\"$deployment.*\"}*0",
+          "format": "time_series",
+          "hide": true,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Total Request",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "(sum by (namespace, pod) (\r\n  (request_total{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", target_port!=\"4191\"}) \n\r\n\r\n  or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0))\r\n- (sum by (namespace, pod) (\r\n  (request_total{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", target_port!=\"4191\"} offset $interval) \n\r\n\r\nor kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0)) > 0 ",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "요청건수($interval)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transformations": [],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:880",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:881",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "30초 주기로 갱신되는 누적 요청 건수",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "hiddenSeries": false,
+      "id": 36,
+      "interval": "30s",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "\rrequest_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} ",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{deployment}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "누적요청건수",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:1648",
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:1649",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 72
+      },
+      "id": 26,
+      "title": "응답 시간",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "설정된 시간 구간 내 각 응답 시간 별 응답의 분포 비율",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 73
+      },
+      "id": 13,
+      "options": {
+        "displayLabels": [
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"}[$__range])\n)\n)\n",
+          "interval": "",
+          "legendFormat": "<1ms",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "1-5ms",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "5-10ms",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "10-50ms",
+          "refId": "D"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "50-100ms",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"100\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "100-500ms",
+          "refId": "F"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"500\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "1000-500ms",
+          "refId": "G"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"1000\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "1-5s",
+          "refId": "H"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"5000\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "5-10s",
+          "refId": "I"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"10000\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "10-50s",
+          "refId": "J"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"+Inf\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"+Inf\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"+Inf\", pod=\"\", node=\"\"}[$__range])\n)\n)-\nsum by (operation) (\nmax_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\", operation=~\"$operation\", deployment=\"$deployment\", le=\"50000\", pod=\"\", node=\"\"}[$__range])\n)\n)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "50s-Inf",
+          "refId": "K"
+        }
+      ],
+      "title": "응답시간 분포",
+      "type": "piechart"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "응답 시간을 백분위로 분석했을때, 응답 시간의 변화 추이",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 0,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 73
+      },
+      "hiddenSeries": false,
+      "id": 78,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "$$hashKey": "object:5015",
+          "alias": "P50",
+          "color": "#3274D9"
+        },
+        {
+          "$$hashKey": "object:5023",
+          "alias": "P95",
+          "color": "#56A64B"
+        },
+        {
+          "$$hashKey": "object:5031",
+          "alias": "P99",
+          "color": "#FF780A"
+        },
+        {
+          "$$hashKey": "object:5039",
+          "alias": "P9999",
+          "color": "#E02F44"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.5,\r\n  sum by (le) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 30s\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s])\n))  \r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "P50",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.95,\r\n  sum by (le) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 30s\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s])\n))  \r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.99,\r\n  sum by (le) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 30s\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s])\n))  \r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "P99",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "histogram_quantile(0.9999,\r\n  sum by (le) (\r\n    (max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"} offset 30s\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=~\"$namespace\", operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\"}[30s])\n))  \r\n  )\r\n)\n\n\r\r",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "P9999",
+          "refId": "D"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "응답 시간(백분위수)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:2710",
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:2711",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "30초 주기로 갱신되는 각 레플리카 별 평균 응답 시간",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 82
+      },
+      "hiddenSeries": false,
+      "id": 47,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "((\r\nsum by (pod, namespace) (response_latency_ms_sum{namespace=\"$namespace\", pod=~\"$deployment.*\",  direction=\"inbound\", target_port!=\"4191\"} or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0 )\r\n-\r\nsum by (pod, namespace) ((response_latency_ms_sum{namespace=\"$namespace\", pod=~\"$deployment.*\",  direction=\"inbound\", target_port!=\"4191\"} offset $interval) or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0)\r\n)>0)\r\n\r\n/\n((sum by (pod, namespace) (response_latency_ms_count{namespace=\"$namespace\", pod=~\"$deployment.*\",  direction=\"inbound\", target_port!=\"4191\"} or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0 )) - (sum by (pod, namespace) ((response_latency_ms_count{namespace=\"$namespace\", pod=~\"$deployment.*\",  direction=\"inbound\", target_port!=\"4191\"} offset $interval) or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0 )))",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "응답시간($interval)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "binary": {
+              "left": "",
+              "operator": "-",
+              "reducer": "sum",
+              "right": ""
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:426",
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:427",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "응답에 걸리는 시간이 50초를 초과한 경우의 응답 건수",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 82
+      },
+      "hiddenSeries": false,
+      "id": 9,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(sum by (pod) (\r\n  (response_latency_ms_bucket{namespace=\"$namespace\", direction=\"inbound\", le=\"+Inf\", target_port!=\"4191\"}\r\n  - ignoring(le)\r\n  response_latency_ms_bucket{namespace=\"$namespace\", direction=\"inbound\", le=\"50000\", target_port!=\"4191\"})\n  or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0 \r\n)\n- sum by (pod) (\r\n  (response_latency_ms_bucket{namespace=\"$namespace\", direction=\"inbound\", le=\"+Inf\", target_port!=\"4191\"} offset $interval\n  - ignoring(le)\r\n  response_latency_ms_bucket{namespace=\"$namespace\", direction=\"inbound\", le=\"50000\", target_port!=\"4191\"} offset $interval)\n  or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0 \r\n)\n)\n* on(pod) group_left(label_operation_aipub_ten1010_io_owner)\r\n(\r\n  kube_pod_labels{pod=~\"$deployment.*\", label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\", job!=\"kubernetes-service-endpoints\"}\r\n\r\n)",
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "응답과대지연 건수(>50초)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:426",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:427",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 91
+      },
+      "id": 24,
+      "panels": [],
+      "title": "응답 상태",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "description": "설정된 시간 구간 내 응답 코드의 분포 비율",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 7,
+        "x": 0,
+        "y": 92
+      },
+      "id": 11,
+      "options": {
+        "displayLabels": [
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\", le=\"+Inf\"}[$__range]) -   \n(\r\n    response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\", le=\"+Inf\"} offset $__range\r\n    or\r\n    0 * max_over_time(response_latency_ms_bucket_operation_total{namespace=\"$namespace\",operation=\"$operation\", deployment=\"$deployment\", pod=\"\", node=\"\", le=\"+Inf\"}[$__range])\n)) ",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "{{status_code}}",
+          "refId": "B"
+        }
+      ],
+      "title": "응답 코드 비율",
+      "type": "piechart"
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "30초 주기로 갱신되는 응답 성공(2XX, 3XX) 건수",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 7,
+        "y": 92
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod) (response_latency_ms_bucket{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", le=\"+Inf\", status_code=~\"2.*\", target_ip!=\"0.0.0.0\"} or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0) - sum by (namespace, pod) ((response_latency_ms_bucket{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", le=\"+Inf\", status_code=~\"2.*\", target_ip!=\"0.0.0.0\"} offset $interval) or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0\n) > 0\n\r\n\r\n\r\n",
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "응답성공건수($interval)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "transformations": [],
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:426",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:427",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": true,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "30초 주기로 갱신되는 응답 실패(4XX, 5XX) 건수",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 9,
+        "x": 15,
+        "y": 92
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": false,
+      "linewidth": 1,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.17",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": true,
+      "steppedLine": true,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (namespace, pod) (response_latency_ms_bucket{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", le=\"+Inf\", status_code!~\"2.*\", target_ip!=\"0.0.0.0\"} or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0) - sum by (namespace, pod) ((response_latency_ms_bucket{namespace=\"$namespace\", pod=~\"$deployment.*\", direction=\"inbound\", le=\"+Inf\", status_code!~\"2.*\", target_ip!=\"0.0.0.0\"} offset $interval) or kube_pod_created{namespace=\"$namespace\", pod=~\"$deployment.*\"}*0\n) > 0\n\r\n\r\n\r\n",
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "응답실패건수($interval)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:426",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:427",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "proj1",
+          "value": "proj1"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\"}, namespace)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "namespace",
+        "options": [
+          {
+            "selected": false,
+            "text": "ae",
+            "value": "ae"
+          },
+          {
+            "selected": false,
+            "text": "aipub",
+            "value": "aipub"
+          },
+          {
+            "selected": false,
+            "text": "annyonghasaeyo",
+            "value": "annyonghasaeyo"
+          },
+          {
+            "selected": false,
+            "text": "coaster",
+            "value": "coaster"
+          },
+          {
+            "selected": false,
+            "text": "common",
+            "value": "common"
+          },
+          {
+            "selected": false,
+            "text": "default",
+            "value": "default"
+          },
+          {
+            "selected": false,
+            "text": "efk",
+            "value": "efk"
+          },
+          {
+            "selected": false,
+            "text": "grafana-test",
+            "value": "grafana-test"
+          },
+          {
+            "selected": false,
+            "text": "ingress-nginx",
+            "value": "ingress-nginx"
+          },
+          {
+            "selected": false,
+            "text": "kube-flannel",
+            "value": "kube-flannel"
+          },
+          {
+            "selected": false,
+            "text": "kube-node-lease",
+            "value": "kube-node-lease"
+          },
+          {
+            "selected": false,
+            "text": "kube-public",
+            "value": "kube-public"
+          },
+          {
+            "selected": false,
+            "text": "kube-system",
+            "value": "kube-system"
+          },
+          {
+            "selected": false,
+            "text": "metallb",
+            "value": "metallb"
+          },
+          {
+            "selected": false,
+            "text": "mig-group",
+            "value": "mig-group"
+          },
+          {
+            "selected": false,
+            "text": "mig-group2",
+            "value": "mig-group2"
+          },
+          {
+            "selected": false,
+            "text": "reg",
+            "value": "reg"
+          },
+          {
+            "selected": false,
+            "text": "resource-group-controller",
+            "value": "resource-group-controller"
+          },
+          {
+            "selected": false,
+            "text": "resource-group1",
+            "value": "resource-group1"
+          },
+          {
+            "selected": false,
+            "text": "resource-group2",
+            "value": "resource-group2"
+          },
+          {
+            "selected": false,
+            "text": "resource-group3",
+            "value": "resource-group3"
+          },
+          {
+            "selected": false,
+            "text": "resource-group4",
+            "value": "resource-group4"
+          },
+          {
+            "selected": false,
+            "text": "resource-group5",
+            "value": "resource-group5"
+          },
+          {
+            "selected": false,
+            "text": "rgroup-test",
+            "value": "rgroup-test"
+          },
+          {
+            "selected": false,
+            "text": "rgroup10",
+            "value": "rgroup10"
+          },
+          {
+            "selected": false,
+            "text": "rgroup11",
+            "value": "rgroup11"
+          },
+          {
+            "selected": false,
+            "text": "rgroup12",
+            "value": "rgroup12"
+          },
+          {
+            "selected": false,
+            "text": "rgroup13",
+            "value": "rgroup13"
+          },
+          {
+            "selected": false,
+            "text": "rgroup14",
+            "value": "rgroup14"
+          },
+          {
+            "selected": false,
+            "text": "rgroup15",
+            "value": "rgroup15"
+          },
+          {
+            "selected": false,
+            "text": "rgroup16",
+            "value": "rgroup16"
+          },
+          {
+            "selected": false,
+            "text": "rgroup17",
+            "value": "rgroup17"
+          },
+          {
+            "selected": false,
+            "text": "rgroup18",
+            "value": "rgroup18"
+          },
+          {
+            "selected": false,
+            "text": "rgroup19",
+            "value": "rgroup19"
+          },
+          {
+            "selected": false,
+            "text": "rgroup2",
+            "value": "rgroup2"
+          },
+          {
+            "selected": false,
+            "text": "rgroup20",
+            "value": "rgroup20"
+          },
+          {
+            "selected": false,
+            "text": "rgroup21",
+            "value": "rgroup21"
+          },
+          {
+            "selected": false,
+            "text": "rgroup22",
+            "value": "rgroup22"
+          },
+          {
+            "selected": false,
+            "text": "rgroup23",
+            "value": "rgroup23"
+          },
+          {
+            "selected": false,
+            "text": "rgroup24",
+            "value": "rgroup24"
+          },
+          {
+            "selected": false,
+            "text": "rgroup25",
+            "value": "rgroup25"
+          },
+          {
+            "selected": false,
+            "text": "rgroup26",
+            "value": "rgroup26"
+          },
+          {
+            "selected": false,
+            "text": "rgroup27",
+            "value": "rgroup27"
+          },
+          {
+            "selected": false,
+            "text": "rgroup28",
+            "value": "rgroup28"
+          },
+          {
+            "selected": false,
+            "text": "rgroup29",
+            "value": "rgroup29"
+          },
+          {
+            "selected": false,
+            "text": "rgroup3",
+            "value": "rgroup3"
+          },
+          {
+            "selected": false,
+            "text": "rgroup30",
+            "value": "rgroup30"
+          },
+          {
+            "selected": false,
+            "text": "rgroup31",
+            "value": "rgroup31"
+          },
+          {
+            "selected": false,
+            "text": "rgroup32",
+            "value": "rgroup32"
+          },
+          {
+            "selected": false,
+            "text": "rgroup33",
+            "value": "rgroup33"
+          },
+          {
+            "selected": false,
+            "text": "rgroup34",
+            "value": "rgroup34"
+          },
+          {
+            "selected": false,
+            "text": "rgroup35",
+            "value": "rgroup35"
+          },
+          {
+            "selected": false,
+            "text": "rgroup36",
+            "value": "rgroup36"
+          },
+          {
+            "selected": false,
+            "text": "rgroup37",
+            "value": "rgroup37"
+          },
+          {
+            "selected": false,
+            "text": "rgroup38",
+            "value": "rgroup38"
+          },
+          {
+            "selected": false,
+            "text": "rgroup39",
+            "value": "rgroup39"
+          },
+          {
+            "selected": false,
+            "text": "rgroup4",
+            "value": "rgroup4"
+          },
+          {
+            "selected": false,
+            "text": "rgroup40",
+            "value": "rgroup40"
+          },
+          {
+            "selected": false,
+            "text": "rgroup5",
+            "value": "rgroup5"
+          },
+          {
+            "selected": false,
+            "text": "rgroup6",
+            "value": "rgroup6"
+          },
+          {
+            "selected": false,
+            "text": "rgroup7",
+            "value": "rgroup7"
+          },
+          {
+            "selected": false,
+            "text": "rgroup8",
+            "value": "rgroup8"
+          },
+          {
+            "selected": false,
+            "text": "rgroup9",
+            "value": "rgroup9"
+          },
+          {
+            "selected": false,
+            "text": "test",
+            "value": "test"
+          },
+          {
+            "selected": false,
+            "text": "test-1",
+            "value": "test-1"
+          },
+          {
+            "selected": false,
+            "text": "test-fr",
+            "value": "test-fr"
+          },
+          {
+            "selected": false,
+            "text": "test2",
+            "value": "test2"
+          },
+          {
+            "selected": false,
+            "text": "test21",
+            "value": "test21"
+          },
+          {
+            "selected": false,
+            "text": "trident",
+            "value": "trident"
+          },
+          {
+            "selected": false,
+            "text": "zxds",
+            "value": "zxds"
+          }
+        ],
+        "query": {
+          "query": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\"}, namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "ten-test-a5000-block-hpa",
+          "value": "ten-test-a5000-block-hpa"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_deployment_labels{label_operation_aipub_ten1010_io_owner!=\"\", namespace=\"$namespace\"}, label_operation_aipub_ten1010_io_owner)",
+        "description": "operation",
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "operation",
+        "multi": false,
+        "name": "operation",
+        "options": [
+          {
+            "selected": false,
+            "text": "hjw1",
+            "value": "hjw1"
+          },
+          {
+            "selected": false,
+            "text": "test-001-ssh",
+            "value": "test-001-ssh"
+          },
+          {
+            "selected": false,
+            "text": "test-0609-1",
+            "value": "test-0609-1"
+          },
+          {
+            "selected": false,
+            "text": "test-lyj",
+            "value": "test-lyj"
+          },
+          {
+            "selected": false,
+            "text": "test-operation-gpu-jsh2",
+            "value": "test-operation-gpu-jsh2"
+          },
+          {
+            "selected": false,
+            "text": "tset-ops-jsh2",
+            "value": "tset-ops-jsh2"
+          },
+          {
+            "selected": false,
+            "text": "vvlm-test-yshee",
+            "value": "vvlm-test-yshee"
+          },
+          {
+            "selected": false,
+            "text": "vvlm-test-yshee2",
+            "value": "vvlm-test-yshee2"
+          },
+          {
+            "selected": false,
+            "text": "vvlm-test-yshee3",
+            "value": "vvlm-test-yshee3"
+          },
+          {
+            "selected": false,
+            "text": "yunju-test-operation-2",
+            "value": "yunju-test-operation-2"
+          },
+          {
+            "selected": false,
+            "text": "yunju-test-operation-3",
+            "value": "yunju-test-operation-3"
+          },
+          {
+            "selected": false,
+            "text": "yunju-test-operation",
+            "value": "yunju-test-operation"
+          }
+        ],
+        "query": {
+          "query": "label_values(kube_deployment_labels{label_operation_aipub_ten1010_io_owner!=\"\", namespace=\"$namespace\"}, label_operation_aipub_ten1010_io_owner)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "30s",
+          "value": "30s"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "label": null,
+        "name": "interval",
+        "options": [
+          {
+            "selected": true,
+            "text": "30s",
+            "value": "30s"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "2m",
+            "value": "2m"
+          }
+        ],
+        "query": "30s,1m,2m",
+        "queryValue": "",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "ten-test-a5000-block-hpa-56784faf",
+          "value": "ten-test-a5000-block-hpa-56784faf"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"},  horizontalpodautoscaler)\n",
+        "description": null,
+        "error": null,
+        "hide": 2,
+        "includeAll": false,
+        "label": "",
+        "multi": false,
+        "name": "hpa",
+        "options": [],
+        "query": {
+          "query": "label_values(kube_horizontalpodautoscaler_labels{label_operation_aipub_ten1010_io_owner=\"$operation\", namespace=\"$namespace\"},  horizontalpodautoscaler)\n",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "rps",
+          "value": "rps"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_horizontalpodautoscaler_spec_target_metric{namespace=\"$namespace\", horizontalpodautoscaler=\"$hpa\"}, metric_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "hpa_metric",
+        "options": [],
+        "query": {
+          "query": "label_values(kube_horizontalpodautoscaler_spec_target_metric{namespace=\"$namespace\", horizontalpodautoscaler=\"$hpa\"}, metric_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "ten-test-3",
+          "value": "ten-test-3"
+        },
+        "datasource": null,
+        "definition": "label_values(kube_deployment_labels{namespace=~\"$namespace\", label_operation_aipub_ten1010_io_owner=~\"$operation\"}, deployment)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "deployment",
+        "options": [],
+        "query": {
+          "query": "label_values(kube_deployment_labels{namespace=~\"$namespace\", label_operation_aipub_ten1010_io_owner=~\"$operation\"}, deployment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Ten Operation",
+  "uid": "tenoperation",
+  "version": 2
+}

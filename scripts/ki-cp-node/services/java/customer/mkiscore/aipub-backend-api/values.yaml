@@ -1,0 +1,154 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-backend-api
+  pullPolicy: Always
+  tag: "4.0.0"
+
+imagePullSecrets:
+  - name: ghcr-ten1010
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 2Gi
+
+livenessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: batch
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+      username: aipub
+      password: Password1@
+      hikari:
+        maximumPoolSize: "10"
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+    flyway:
+      enabled: true
+      baselineOnMigration: true
+  app:
+    jwt:
+      secretKey: n0dCUStAujBwdQl1rbn80FQWNnBx03l6
+    application:
+      type: BACKEND_API
+      id: backend_api
+    domain:
+      auth:
+        initPassword: Ten1010!!
+      keycloak:
+        serverUrl: https://aipub-keycloak.example.com
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: n0dCUStAujBwdQl1rbn80FQWNnBx03l6
+        userRealm: aipub
+        verifyingSsl: false
+      harbor:
+        serverUrl: https://aipub-harbor.example.com
+        verifyingSsl: false
+        username: admin
+        password: Harbor12345
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+        k8sManagerToken: eyJhbGciOiJSUzI1NiIsImtpZCI6IlROc0gxRlMwcUJtNXk5Z3FsZ0VwOTl4djE0VEpwUGFvbFlhQ0pqb01PdGMifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhaXB1YiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhaXB1Yi1yZXNvdXJjZXMtbWFuYWdlci1zZWNyZXQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiYWlwdWItcmVzb3VyY2VzLW1hbmFnZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiI3NmQ5NzczNi1hNjU5LTQzNWEtYjhkNS1lMGZkZGRkMTQzODUiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6YWlwdWI6YWlwdWItcmVzb3VyY2VzLW1hbmFnZXIifQ.vzv6rFmXbv1GtL9kp1W-F0WCtKuzsi5AEhc38nlCS1I0CjlY9ODcYHiG_7jRKNdo9VEzzWWtiBy_ykmV17f5AJQjzLEcZsGWrD2LxsURvcrVdWT2Zfd3Ds7DiXmKiyCRbArw9kynLyhlEKjBYWmIF3BrhKuIJVKkBc1Ih57CYl2mQT1HaD-RLEwN11eJOXVWHeCz42B6pABiyDa2I4O8kEKYaTLv92SjJ_-n4pa3bxHHJzLJqzOzaVgbSMM9OI0Iyg6VfW_oU2pp2ypCn69PXZaqbn07HybiaLS7xTS4O28Le9DNaYQt4JJ4JGt1ogDISUyUAY7yfhBzUIWzdFnmqQ
+        verifyingSsl: false
+    esClient:
+      serverUrl: http://elasticsearch-master.aipub-efk:9200
+      username: elastic
+      password: 12KgDhLTd8v6Y89F
+      verifyingSsl: false

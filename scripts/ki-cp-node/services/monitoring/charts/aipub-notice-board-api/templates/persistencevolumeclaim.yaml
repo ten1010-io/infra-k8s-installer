@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "aipub-notice-board-api.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "aipub-notice-board-api.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.storageProvisioning.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.storageProvisioning.size | default "20Gi" }}
+  {{- if eq .Values.storageProvisioning.type "dynamic" }}
+  storageClassName: {{ .Values.storageProvisioning.dynamic.storageClassName }}
+  {{- else if eq .Values.storageProvisioning.type "static" }}
+  storageClassName: ""
+  selector:
+    matchLabels:
+      {{- include "aipub-notice-board-api.selectorLabels" . | nindent 6 }}
+  {{- end }}

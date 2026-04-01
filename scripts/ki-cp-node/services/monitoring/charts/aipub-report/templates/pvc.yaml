@@ -1,0 +1,23 @@
+{{- if not .Values.storageProvisioning.existingClaim }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aipub-report-cache
+  namespace: {{ include "chart.Namespace" . }}
+  labels:
+    app: aipub-report
+spec:
+  accessModes:
+    - {{ .Values.storageProvisioning.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.storageProvisioning.size | default "5Gi" }}
+  {{- if eq .Values.storageProvisioning.type "dynamic" }}
+  storageClassName: {{ .Values.storageProvisioning.dynamic.storageClassName }}
+  {{- else if eq .Values.storageProvisioning.type "static" }}
+  storageClassName: ""
+  selector:
+    matchLabels:
+      app: aipub-report
+  {{- end }}
+{{- end }}

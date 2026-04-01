@@ -1,0 +1,5 @@
+namespace: aipub-efk
+generatorOptions:
+  disableNameSuffixHash: true
+resources:
+  - templates/role.yaml

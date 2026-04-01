@@ -1,0 +1,181 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-backend-api
+  pullPolicy: IfNotPresent
+  tag: "1.0.4"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 2Gi
+
+livenessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: batch
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+      username: aipub
+      password: Password1@
+      hikari:
+        maximumPoolSize: "10"
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+    flyway:
+      enabled: true
+      baselineOnMigration: true
+  app:
+    jwt:
+      secretKey: ## SPK ##
+    application:
+      type: BACKEND_API
+      id: backend_api
+    domain:
+      auth:
+        initPassword: Ten1010!!
+      keycloak:
+        serverUrl: https://aipub-keycloak.example.com
+        issuerUrl: https://aipub-keycloak.example.com/realms/aipub
+        tokenUrl: https://aipub-keycloak.example.com/realms/aipub/protocol/openid-connect/token
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: ## SPK ##
+        userRealm: aipub
+        userRealmPublicKey: ## SPK ##
+        verifyingSsl: false
+      harbor:
+        serverUrl: https://aipub-harbor.example.com
+        verifyingSsl: false
+        username: admin
+        password: Harbor12345
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+        k8sManagerToken: ## SPK ##
+        verifyingSsl: false
+    esClient:
+      serverUrl: http://elasticsearch-master.aipub-efk:9200
+      username: elastic
+      password: ## SPK ##
+      verifyingSsl: false
+    simplejavamail:
+      smtpHost: email-smtp.ap-northeast-2.amazonaws.com
+      smtpPort: 465
+      smtpUsername: AKIAQRYAI5QYE6L6OUOW
+      smtpPassword: BAoxnYj9qLmRkhEhSnPbAc6YDGoDfpSYb7IztimMhXig
+      fromAddress: helloten@ten1010.io
+      templateHomeUrl: https://aipub.example.com/
+      tlsEnabled: true
+      sendEnable: false
+    soapMms:
+      requestNamespace: http://xmlns.oracle.com/pcbpel/adapter/db/IKEP/INSERT_MMS/
+      mmsUrl: http://eaiws.lgdisplay.com:3000/orabpel/LGD_COMMON/callMmsEP/1.0
+      callback: "1544-3999"
+      sendEnable: false
+  resilience4j:
+    retry:
+      instances:
+        emailRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException
+        emailAllRetry:
+          maxAttempts: 3
+          waitDuration: 5s
+          retryExceptions: java.io.IOException

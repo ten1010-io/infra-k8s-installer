@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aipub-cluster-overview-api.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: aipub-cluster-overview-api
+    {{- include "aipub-cluster-overview-api.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "aipub-cluster-overview-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: aipub-cluster-overview-api
+        {{- include "aipub-cluster-overview-api.selectorLabels" . | nindent 8 }}
+    spec:
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      containers:
+        - name: {{ include "aipub-cluster-overview-api.fullname" . }}
+          image: {{ include "aipub-cluster-overview-api.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+              name: http
+              protocol: TCP
+          env:
+            - name: AAA_API_GATEWAY_HOST
+              value: "http://localhost:8008"
+            - name: AAA_BACKEND_CORS_ORIGINS
+              value: "http://localhost:8000,http://127.0.0.1:8000"
+            - name: AAA_PROMETHEUS_SCHEME
+              value: "{{ .Values.prometheus.service.scheme }}"
+            - name: AAA_PROMETHEUS_HOST
+              value: "{{ .Values.prometheus.service.name }}.{{ .Values.prometheus.namespace }}.svc.cluster.local"
+            - name: AAA_PROMETHEUS_PORT
+              value: "{{ .Values.prometheus.service.port }}"
+            - name: AAA_PROMETHEUS_TIMEOUT
+              value: "{{ .Values.prometheus.timeoutSeconds }}"
+            - name: AAA_IGNORE_NAMESPACES
+              value: "{{ join "," .Values.ignoreNamespaces }}"
+          # Prometheus 연결 및 shutdown 상태 확인
+          # 실패 시 서비스 엔드포인트에서 제거 (재시작 없음)
+          startupProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10        # FastAPI 빠른 시작 (2-3초) + 마진
+            periodSeconds: 10             # 10초마다 체크
+            timeoutSeconds: 3             # 3초 타임아웃
+            failureThreshold: 2           # 3번 연속 실패 시 트래픽 차단
+
+          # readinessProbe:
+          #   httpGet:
+          #     path: /health/ready
+          #     port: http
+          #     scheme: HTTP
+          #   initialDelaySeconds: 10        # FastAPI 빠른 시작 (2-3초) + 마진
+          #   periodSeconds: 10             # 10초마다 체크
+          #   timeoutSeconds: 3             # 3초 타임아웃
+          #   successThreshold: 1           # 1번 성공하면 트래픽 수신
+          #   failureThreshold: 2           # 3번 연속 실패 시 트래픽 차단
+
+          # Liveness Probe: 앱이 완전히 멈췄는지만 체크 (매우 느슨함)
+          # 진짜 데드락/hang 상태만 감지하여 재시작
+          # Prometheus 연결 문제는 readiness에서 처리
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 20       # readiness 성공 후 여유있게 시작
+            periodSeconds: 3600           # 1시간마다 체크 (느슨함)
+            timeoutSeconds: 5             # 5초 타임아웃
+            successThreshold: 1           # 1번 성공하면 OK
+            failureThreshold: 5           # 5분간 실패해야 재시작
+
+      restartPolicy: Always

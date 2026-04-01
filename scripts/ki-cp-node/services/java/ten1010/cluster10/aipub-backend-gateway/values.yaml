@@ -1,0 +1,129 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-backend-gateway
+  pullPolicy: IfNotPresent
+  tag: "v4.0.0-LGD03"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1" #  ingressClassName: lb1
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: aipub-backend-gateway.cluster10.idc1.ten1010.io # replace with domain
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: aipub-backend-gateway-tls
+      hosts:
+        - aipub-backend-gateway.cluster10.idc1.ten1010.io # replace with domain
+
+resources: { }
+
+livenessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 8080
+  timeoutSeconds: 1
+readinessProbe:
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  tcpSocket:
+    port: 8080
+  timeoutSeconds: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: [ ]
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  grpc:
+    client:
+      backendApi:
+        address: dns:///aipub-backend-api.aipub.svc.cluster.local:9090
+  spring:
+    profiles:
+      active: production
+    web:
+      resources:
+        addMappings: "false"
+  app:
+    jwt:
+      secretKey: FZdex58sKAOsjc8JZ0WzljxtAtFM4Odb
+      keycloakPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiLAqIyfpThDQtDcNkf6ILncq9dUJ8HJ2soULtJCbBPG+CCTfGHMp0R2NxcubOh/DeJhbA02tuoqKCQL3nIrCXJ3YwRbaGnjaDiUnXxVw37S+oDq5sfXHm7cZkcohHRqQw5U6oBZG/282olpZY5oowWA6vVR5XWslYSxr0o0ogkTnPbdzu17aO8bPSCoQKTbt3eHrmjlwJoovYkj8HP5GJHDJ0I58pMuPy+mL6bxOBCCyMzTpvxYHLENzxDJTgjbbn9nXxuPrsqoymZQlAYymF/2eQq1gHd1stZSWUqIH9g5tbDNjD2i8z+9HanKUiRqfYSMM9Q594de26c4uG8pZPQIDAQAB
+    application:
+      type: BACKEND_GATEWAY
+      id: backend-gateway
+    cookie:
+      domain: ".cluster10.idc1.ten1010.io"
+    domain:
+      keycloak:
+        issuerUri: https://aipub-keycloak.cluster10.idc1.ten1010.io/realms/aipub
+    web:
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+      security:
+        allowedOrigins: https://aipub.cluster10.idc1.ten1010.io
+        allowedOrigin: https://aipub.cluster10.idc1.ten1010.io
+        basicAuth:
+          user:
+            username: "testuser"
+            password: "asdasdasd"
+            role: "aipub-admin"
+  logging:
+    level:
+      orgSpringframeworkWeb: info

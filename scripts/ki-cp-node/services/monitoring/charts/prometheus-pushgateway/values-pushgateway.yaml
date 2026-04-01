@@ -1,0 +1,11 @@
+serviceMonitor:
+  enabled: true
+  namespace: "prometheus"
+  additionalLabels:
+    release: "promstack"
+
+image:
+  pullPolicy: Never
+
+nodeSelector:
+  kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io

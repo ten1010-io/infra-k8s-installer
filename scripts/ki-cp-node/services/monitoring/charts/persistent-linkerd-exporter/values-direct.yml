@@ -1,0 +1,6 @@
+metric_export_mode: "DIRECT"
+prometheus_uri: "http://promstack-kube-prometheus-prometheus.prometheus.svc:9090"
+nodeSelector:
+  enabled: true
+  labels:
+    kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io

@@ -1,0 +1,302 @@
+{{- if .Values.deployment.prometheus.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: {{ $.Release.Name | quote }}
+    meta.helm.sh/release-namespace: {{ template "kube-prometheus-stack.namespace" . }}
+  labels:
+    app: {{ template "kube-prometheus-stack.name" . }}-prometheus
+    {{ include "kube-prometheus-stack.labels" . | nindent 4 }}
+  name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus
+  namespace: {{ template "kube-prometheus-stack.namespace" . }}
+spec:
+  replicas: 1  # Deployment는 여러 replica 가능
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: {{ template "kube-prometheus-stack.name" . }}-prometheus
+      {{ include "kube-prometheus-stack.labels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        app: {{ template "kube-prometheus-stack.name" . }}-prometheus
+        operator.prometheus.io/name: {{ template "kube-prometheus-stack.prometheus.crname" . }}
+        {{ include "kube-prometheus-stack.labels" . |  nindent 8 }}
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - --web.console.templates=/etc/prometheus/consoles
+        - --web.console.libraries=/etc/prometheus/console_libraries
+        - --config.file=/etc/prometheus/config_out/prometheus.env.yaml
+        - --web.enable-lifecycle
+        {{- if .Values.prometheus.prometheusSpec.externalUrl }}
+        - --web.external-url={{ tpl .Values.prometheus.prometheusSpec.externalUrl . }}
+        {{- else if and .Values.prometheus.ingress.enabled .Values.prometheus.ingress.hosts }}
+        - --web.external-url=http://{{ tpl (index .Values.prometheus.ingress.hosts 0) . }}{{ .Values.prometheus.prometheusSpec.routePrefix }}
+        {{- else }}
+        - --web.external-url=http://{{ template "kube-prometheus-stack.fullname" . }}-prometheus.{{ template "kube-prometheus-stack.namespace" . }}:{{ .Values.prometheus.service.port }}
+        {{- end }}
+        - --web.route-prefix=/
+        {{- if .Values.prometheus.prometheusSpec.retention }}
+        - --storage.tsdb.retention.time={{ .Values.prometheus.prometheusSpec.retention }}
+        {{- end }}
+        {{- if .Values.prometheus.prometheusSpec.retentionSize }}
+        - --storage.tsdb.retention.size={{ .Values.prometheus.prometheusSpec.retentionSize }}
+        {{- end }}
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.wal-compression
+        - --web.config.file=/etc/prometheus/web_config/web-config.yaml
+       {{- if .Values.prometheus.prometheusSpec.image }}
+        {{- $registry := .Values.global.imageRegistry | default .Values.prometheus.prometheusSpec.image.registry -}}
+        {{- if and .Values.prometheus.prometheusSpec.image.tag .Values.prometheus.prometheusSpec.image.sha }}
+        image: "{{ $registry }}/{{ .Values.prometheus.prometheusSpec.image.repository }}:{{ .Values.prometheus.prometheusSpec.image.tag }}@sha256:{{ .Values.prometheus.prometheusSpec.image.sha }}"
+        {{- else if .Values.prometheus.prometheusSpec.image.sha }}
+        image: "{{ $registry }}/{{ .Values.prometheus.prometheusSpec.image.repository }}@sha256:{{ .Values.prometheus.prometheusSpec.image.sha }}"
+        {{- else if .Values.prometheus.prometheusSpec.image.tag }}
+        image: "{{ $registry }}/{{ .Values.prometheus.prometheusSpec.image.repository }}:{{ .Values.prometheus.prometheusSpec.image.tag }}"
+        {{- else }}
+        image: "{{ $registry }}/{{ .Values.prometheus.prometheusSpec.image.repository }}"
+        {{- end }}
+       {{- end }}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 6
+          httpGet:
+            path: /-/healthy
+            port: http-web
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: prometheus
+        ports:
+        - containerPort: 9090
+          name: http-web
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /-/ready
+            port: http-web
+            scheme: HTTP
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        {{- if .Values.prometheus.prometheusSpec.resources }}
+        resources:
+          {{- toYaml .Values.prometheus.prometheusSpec.resources | nindent 10 }}
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 60
+          httpGet:
+            path: /-/ready
+            port: http-web
+            scheme: HTTP
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 3
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/prometheus/config_out
+          name: config-out
+          readOnly: true
+        - mountPath: /etc/prometheus/certs
+          name: tls-assets
+          readOnly: true
+        - mountPath: /prometheus
+          name: prometheus-storage  # PVC 이름으로 변경
+          subPath: prometheus-db
+        - mountPath: /etc/prometheus/rules/prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+          name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+        - mountPath: /etc/prometheus/web_config/web-config.yaml
+          name: web-config
+          readOnly: true
+          subPath: web-config.yaml
+      - args:
+        - --listen-address=:8080
+        - --reload-url=http://127.0.0.1:9090/-/reload
+        - --config-file=/etc/prometheus/config/prometheus.yaml.gz
+        - --config-envsubst-file=/etc/prometheus/config_out/prometheus.env.yaml
+        - --watched-dir=/etc/prometheus/rules/prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+        command:
+        - /bin/prometheus-config-reloader
+        {{- $configReloaderRegistry := .Values.global.imageRegistry | default .Values.prometheusOperator.prometheusConfigReloader.image.registry -}}
+        {{- if .Values.prometheusOperator.image.sha }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}@sha256:{{ .Values.prometheusOperator.prometheusConfigReloader.image.sha }}
+        {{- else }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}"
+        {{- end }}
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SHARD
+          value: "0"
+        imagePullPolicy: IfNotPresent
+        name: config-reloader
+        ports:
+        - containerPort: 8080
+          name: reloader-web
+          protocol: TCP
+        {{- if .Values.prometheusOperator.prometheusConfigReloader.resources }}  
+        resources:
+          {{- toYaml .Values.prometheusOperator.prometheusConfigReloader.resources | nindent 10 }}
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/prometheus/config
+          name: config
+        - mountPath: /etc/prometheus/config_out
+          name: config-out
+        - mountPath: /etc/prometheus/rules/prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+          name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - rm -rf /prometheus/lock
+        command:
+        - /bin/sh
+        - -c
+        {{- $configReloaderRegistry := .Values.global.imageRegistry | default .Values.prometheusOperator.prometheusConfigReloader.image.registry -}}
+        {{- if .Values.prometheusOperator.image.sha }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}@sha256:{{ .Values.prometheusOperator.prometheusConfigReloader.image.sha }}
+        {{- else }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}"
+        {{- end }}
+        imagePullPolicy: IfNotPresent
+        name: lock-remover
+        {{- if .Values.prometheusOperator.prometheusConfigReloader.resources }}
+        resources:
+          {{- toYaml .Values.prometheusOperator.prometheusConfigReloader.resources | nindent 10 }}
+        {{- end }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /prometheus
+          name: prometheus-storage
+          subPath: prometheus-db
+
+      - args:
+        - --watch-interval=0
+        - --listen-address=:8081
+        - --config-file=/etc/prometheus/config/prometheus.yaml.gz
+        - --config-envsubst-file=/etc/prometheus/config_out/prometheus.env.yaml
+        - --watched-dir=/etc/prometheus/rules/prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+        command:
+        - /bin/prometheus-config-reloader
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SHARD
+          value: "0"
+        {{- $configReloaderRegistry := .Values.global.imageRegistry | default .Values.prometheusOperator.prometheusConfigReloader.image.registry -}}
+        {{- if .Values.prometheusOperator.image.sha }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}@sha256:{{ .Values.prometheusOperator.prometheusConfigReloader.image.sha }}
+        {{- else }}
+        image: "{{ $configReloaderRegistry }}/{{ .Values.prometheusOperator.prometheusConfigReloader.image.repository }}:{{ .Values.prometheusOperator.prometheusConfigReloader.image.tag | default .Chart.AppVersion }}"
+        {{- end }}
+        imagePullPolicy: IfNotPresent
+        name: init-config-reloader
+        ports:
+        - containerPort: 8081
+          name: reloader-web
+          protocol: TCP
+        {{- if .Values.prometheusOperator.prometheusConfigReloader.resources }}  
+        resources:
+          {{- toYaml .Values.prometheusOperator.prometheusConfigReloader.resources | nindent 10 }}
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/prometheus/config
+          name: config
+        - mountPath: /etc/prometheus/config_out
+          name: config-out
+        - mountPath: /etc/prometheus/rules/prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+          name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+      {{- if .Values.prometheus.prometheusSpec.affinity }}
+      affinity:
+        {{ toYaml .Values.prometheus.prometheusSpec.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.prometheusSpec.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.prometheus.prometheusSpec.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.prometheus.prometheusSpec.tolerations }}
+      tolerations:
+        {{ toYaml .Values.prometheus.prometheusSpec.tolerations | nindent 8 }}
+      {{- end }}
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 2000
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: {{ template "kube-prometheus-stack.prometheus.serviceAccountName" . }}
+      serviceAccountName: {{ template "kube-prometheus-stack.prometheus.serviceAccountName" . }}
+      shareProcessNamespace: false
+      terminationGracePeriodSeconds: 600
+      volumes:
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus
+      - name: tls-assets
+        projected:
+          defaultMode: 420
+          sources:
+          - secret:
+              name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-tls-assets-0
+      - emptyDir:
+          medium: Memory
+        name: config-out
+      - configMap:
+          defaultMode: 420
+          name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+        name: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-rulefiles-0
+      - name: web-config
+        secret:
+          defaultMode: 420
+          secretName: prometheus-{{ template "kube-prometheus-stack.fullname" . }}-prometheus-web-config
+      # PVC를 volume으로 추가
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: {{.Values.deployment.prometheus.claimName}}
+{{- end }}

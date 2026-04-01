@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      containers:
+      - command:
+        {{- toYaml .Values.command | nindent 8 }}
+        {{- if .Values.args }}
+        args:
+        {{- toYaml .Values.args | nindent 8 }}
+        {{- end }}
+        name: scheduler
+        env:
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        - name: BLOCK_GPU_INIT_CONTAINER_IMAGE_PULL_POLICY
+          value: "{{ .Values.deliveryImage.pullPolicy }}"
+        - name: BLOCK_GPU_INIT_CONTAINER_IMAGE
+          value: "{{ if .Values.deliveryImage.registry }}{{ .Values.deliveryImage.registry }}/{{ end }}{{ .Values.deliveryImage.repository }}:{{ .Values.deliveryImage.tag }}"
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: tls
+          mountPath: /var/run/secrets/ten1010.io/tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: {{ .Release.Name }}-webhook-tls

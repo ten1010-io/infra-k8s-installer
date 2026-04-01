@@ -1,0 +1,34 @@
+
+tlsVerify: false
+#elasticUrl: https://101.202.62.74:30920/
+elasticUrl: https://elasticsearch-master.efk.svc.cluster.local:9200
+replicas: 1
+elasticCredentialSecretName: elasticsearch-master-credentials
+image:
+  repository: prom-infra-alerter
+  tag: "1.0.0"
+  imagePullPolicy: Never
+
+resources: {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 120Mi
+  # limits:
+  #   cpu: 100m
+  #   memory: 120Mi  
+affinity: {}
+#  requiredDuringSchedulingIgnoredDuringExecution:
+#    nodeSelectorTerms:
+#    - matchExpressions:
+#      - key: kubernetes.io/hostname
+#        operator: In
+#        values:
+ #        - nodename
+
+nodeSelector: {}
+#  kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io
+#
+tolerations: []
+  #- key: "node-role.kubernetes.io/control-plane"
+  #  effect: "NoSchedule"
+  #  operator: "Exists"

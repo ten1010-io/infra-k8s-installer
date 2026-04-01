@@ -1,0 +1,204 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-sso-gateway
+  pullPolicy: Always
+  tag: "4.0.0"
+
+imagePullSecrets:
+  - name: ghcr-ten1010
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "aipub-sso-gateway"
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: aipub.example.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: aipub-tls
+      hosts:
+        - aipub.example.com
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  server:
+    port: 8080
+  spring:
+    profiles:
+      active: "production"
+    cloud:
+      gateway:
+        server:
+          webflux:
+            userCreate:
+              id: "user_create"
+              uri: "no://op"
+              predicatePath: "Path=/api/v1alpha1/users"
+              predicateMethod: "Method=POST"
+              filterName: "AipubUserAdapter"
+            userUpdatePassword:
+              id: "user_update_password"
+              uri: "no://op"
+              predicatePath: "Path=/api/v1alpha1/users/*/password"
+              predicateMethod: "Method=PATCH"
+              filterName: "AipubUserAdapter"
+            userResetPassword:
+              id: "user_reset_password"
+              uri: "no://op"
+              predicatePath: "Path=/api/v1alpha1/users/*/resetpassword"
+              predicateMethod: "Method=PUT"
+              filterName: "AipubUserAdapter"
+            aipubBackend:
+              id: "backend_gateway"
+              uri: "http://aipub-backend-gateway.aipub.svc.cluster.local:8080"
+              predicates:
+                path: "Path=/api/**"
+              filters:
+                aipubAdapter:
+                  name: "WelcomeAdapter"
+            aipubFrontend:
+              id: "aipub_frontend"
+              uri: "http://aipub-frontend.aipub.svc.cluster.local"
+              predicates:
+                path: "Path=/**"
+              filters:
+                aipubAdapter:
+                  name: "WelcomeAdapter"
+            kibana:
+              id: "kibana"
+              predicates:
+                path: "Path=/kibana/**"
+              uri: "https://kibana-kibana.aipub-efk.svc.cluster.local:5601"
+              filters:
+                basicAuthAdapter:
+                  name: "BasicAuthAdapter"
+                  args:
+                    adminUser: "elastic"
+                    adminPassword: "12KgDhLTd8v6Y89F"
+                    userUser: aipub
+                    userPassword: "aipub1@"
+                removeRequestHeader:
+                  name: "RemoveRequestHeader"
+                  args:
+                    name: "Cookie"
+            streamlit:
+              id: "streamlit_main"
+              uri: "http://aipub-monitoring.aipub.svc.cluster.local:8501"
+              predicates:
+                path: "Path=/streamlit/**"
+              filters:
+                name: "BearerAuthAdapter"
+            notice:
+              id: "notice_main"
+              uri: "http://aipub-notice-board-api.aipub-efk.svc.cluster.local:8009"
+              predicates:
+                path: "Path=/notice/**"
+              filters:
+                arg: "StripPrefix=1"
+            alloc:
+              id: "alloc_main"
+              uri: "http://aipub-cluster-overview-api.aipub-promstack.svc.cluster.local:8008"
+              predicates:
+                path: "Path=/alloc/**"
+              filters:
+                arg: "StripPrefix=1"
+            report:
+              id: "report_main"
+              uri: "http://aipub-report.aipub.svc.cluster.local:8000"
+              predicates:
+                path: "Path=/report/**"
+              filters:
+                arg: "StripPrefix=1"
+            httpclient:
+              ssl:
+                useInsecureTrustManager: true
+              compression: true
+              websocketMaxFramePayloadLength: "25165824"  # 24 * 1024 * 1024 24MB
+  app:
+    domain:
+      auth:
+        backendServerUrl: http://aipub-backend-gateway.aipub.svc.cluster.local:8080
+        basicAuthUsername: testuser
+        basicAuthPassword: asdasdasd
+        verifyingSsl: false
+        initPassword: Ten1010!!
+      keycloak:
+        serverUrl: https://aipub-keycloak.example.com
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: n0dCUStAujBwdQl1rbn80FQWNnBx03l6
+        verifyingSsl: false
+        keycloakPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxrcP3IIHWgYe5svKq9IpiRY0RK+Xlwiw5t+UsopgS7/vbFb/CLRtXmmLZTPtdwJx050c5p/4mXBHXpstX01cGZtZq8lm3m3+rhTewGHXIbYKGwJcCxEmRzqNEEMVxICp9QZC88VS3rrTj6OjwtF4T8wFnuyifY2zkCvOa4NbykADkYrrxbevGr/BEWIbQsUtkpzZMYhB2s+C06Qc+MaU5vo5VCpSnGAwiIVSMaambh9mSQTwsUdup3cvSO/IKK3OIMBiSReMXzSmD010pJ0ZmGzqGoH5mIuKusmaj5mYesHZ6lYfwcvvffDepmJgxAchlTD8iEPEDg0SGIfAogYeXwIDAQAB
+    cookie:
+      accessMaxAge: "1800"
+      refreshMaxAge: "2592000"
+      idMaxAge: "1800"
+      domain: ".example.com"
+    redirect:
+      indexUrl: "https://aipub.example.com/welcome/index"
+      aipubUrl: "https://aipub.example.com"
+  web:
+    client:
+      maxInMemorySize: "20971520"   # 20MB
+  cors:
+    allowedOrigin: "https://aipub.example.com"

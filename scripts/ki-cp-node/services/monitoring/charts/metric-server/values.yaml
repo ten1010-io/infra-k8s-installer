@@ -1,0 +1,26 @@
+
+  enabled: false
+  tlsVerify: false
+  
+  resources: {}
+    #limits:
+    #  cpu: 100m
+    #  memory: 200Mi
+    #requests:
+    #  cpu: 100m
+    #  memory: 200Mi
+  image:
+    repository: ki-cp.ki.local:5001/aipub-4.3.0/monitoring/metrics-server
+    tag: "v0.7.1"
+    imagePullPolicy: IfNotPresent
+
+affinity: {}
+
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
+    operator: "Exists" 

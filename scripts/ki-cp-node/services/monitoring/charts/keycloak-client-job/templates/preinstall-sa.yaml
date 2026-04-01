@@ -1,0 +1,43 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: service-client-sa
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    "helm.sh/hook-weight": "-6"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: keycloak-secret-access
+  namespace: {{ .Values.keycloak.namespace }}  # keycloak namespace에 Role을 생성합니다
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    "helm.sh/hook-weight": "-6"
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: service-client-keycloak-secret-access
+  namespace: {{ .Values.keycloak.namespace }}  # keycloak namespace에 RoleBinding을 생성합니다
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    "helm.sh/hook-weight": "-6"
+subjects:
+- kind: ServiceAccount
+  name: service-client-sa
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: keycloak-secret-access
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,171 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-backend-api
+  pullPolicy: IfNotPresent
+  tag: "4.0.0"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-api.logs: '[{"source": "java", "service": "aipub-backend-api"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+    - name: grpc
+      port: 9090
+      protocol: TCP
+      targetPort: 9090
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    memory: 2Gi
+
+livenessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: grpc
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+    name: ca-certs
+  - name: java-agents
+    hostPath:
+      path: /opt/aipub/agents
+      type: Directory
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+  - mountPath: /opt/aipub/agents
+    name: java-agents
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: batch
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+      username: aipub
+      password: Password1@
+      hikari:
+        maximumPoolSize: "10"
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: 9090
+        reflection:
+          enabled: true
+    flyway:
+      enabled: false
+      baselineOnMigration: false
+  app:
+    jwt:
+      secretKey: uyutK2O210wRjs1GOJRKEEAHhD2lNbP5
+    application:
+      type: BACKEND_API
+      id: backend_api
+    domain:
+      auth:
+        initAdminUsername: aipubadmin
+        initPassword: Ten1010!!
+      keycloak:
+        serverUrl: https://aipub-keycloak.cluster5.idc1.ten1010.io
+        clientRealm: aipub
+        clientId: k8s
+        clientSecret: uyutK2O210wRjs1GOJRKEEAHhD2lNbP5
+        userRealm: aipub
+        verifyingSsl: false
+      harbor:
+        serverUrl: https://aipub-harbor.cluster5.idc1.ten1010.io
+        verifyingSsl: false
+        username: admin
+        password: Harbor12345
+      k8sProxy:
+        k8sUri: https://10.96.0.1
+        k8sManagerToken: eyJhbGciOiJSUzI1NiIsImtpZCI6ImM4OHV0Z2lhMFJ3aDI4dmNUVE42V3JwZmh2Qm5EeVEzVjBsWmhBS1hQXzAifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJhaXB1YiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhaXB1Yi1yZXNvdXJjZXMtbWFuYWdlci1zZWNyZXQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiYWlwdWItcmVzb3VyY2VzLW1hbmFnZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIxYWViODliMi1mYWU1LTRmOGMtYWQ2OS03YzVlNmViMWNkNjIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6YWlwdWI6YWlwdWItcmVzb3VyY2VzLW1hbmFnZXIifQ.stoAExhGMHJHptjfk3RB41jQQyO03WtfvE3qZnFkldfh-lGdwAyvjhHpe9Onz33BaojgKRpWilDlbWR_WTdEvY7Hka-QUcsxz2uS_t4FcwMl3mBl4HRZ0K9db52R_DovCSHaZwwAwzSfhw0lAvbSfc2jGty3nu6FmOT1Nvqxno8OijWxkyZc8IG5_zkP7k_mh3Ke6KYwUqgkVBCrS35zjXoxr9niLGE7BsgL89lDpxzyzMNug10UnekC3nWg2AMfcD41qqJTnEP8JhXXm-QJANF0IkcmiMRKT_v67kgxYAflhAU9tcWGdi-L247ZAJ_Z_2puCPTuSzT297GFLTuG5A
+        verifyingSsl: false
+    esClient:
+      serverUrl: http://elasticsearch-master.aipub-efk:9200
+      username: elastic
+      password: n77C28hfcMVMbXVI
+      verifyingSsl: false
+
+agent:
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-api"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

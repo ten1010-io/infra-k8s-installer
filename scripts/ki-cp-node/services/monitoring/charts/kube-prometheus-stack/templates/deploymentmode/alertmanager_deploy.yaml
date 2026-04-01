@@ -1,0 +1,258 @@
+{{- if .Values.deployment.alertmanager.enabled }}
+
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: alertmanager
+    meta.helm.sh/release-namespace: aipub-promstack
+  labels:
+    alertmanager: alertmanager-kube-promethe-alertmanager
+    app.kubernetes.io/name: alertmanager
+    app: kube-prometheus-stack-alertmanager
+    app.kubernetes.io/instance: alertmanager
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 62.7.0
+    chart: kube-prometheus-stack-62.7.0
+    heritage: Helm
+    managed-by: prometheus-operator
+    release: alertmanager
+  name: alertmanager-alertmanager-kube-promethe-alertmanager
+  namespace: aipub-promstack
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: kube-prometheus-stack-alertmanager
+      app.kubernetes.io/instance: alertmanager
+      app.kubernetes.io/name: alertmanager
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: alertmanager
+      labels:
+        app: kube-prometheus-stack-alertmanager
+        app.kubernetes.io/instance: alertmanager
+        app.kubernetes.io/managed-by: prometheus-operator
+        app.kubernetes.io/name: alertmanager
+        app.kubernetes.io/version: 0.27.0
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - --config.file=/etc/alertmanager/config_out/alertmanager.env.yaml
+        - --storage.path=/alertmanager
+        - --data.retention=120h
+        - --cluster.listen-address=
+        - --web.listen-address=:9093
+        - --web.external-url=http://alertmanager-kube-promethe-alertmanager.aipub-promstack:9093
+        - --web.route-prefix=/
+        - --cluster.label=aipub-promstack/alertmanager-kube-promethe-alertmanager
+        # 클러스터링 관련 args 제거 또는 수정 필요 (Deployment에서는 Pod 이름이 동적)
+        - --cluster.reconnect-timeout=5m
+        - --web.config.file=/etc/alertmanager/web_config/web-config.yaml
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: ten1010.io/prometheus/alertmanager:v0.27.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /-/healthy
+            port: http-web
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: alertmanager
+        ports:
+        - containerPort: 9093
+          name: http-web
+          protocol: TCP
+        - containerPort: 9094
+          name: mesh-tcp
+          protocol: TCP
+        - containerPort: 9094
+          name: mesh-udp
+          protocol: UDP
+        readinessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /-/ready
+            port: http-web
+            scheme: HTTP
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/alertmanager/config
+          name: config-volume
+        - mountPath: /etc/alertmanager/config_out
+          name: config-out
+          readOnly: true
+        - mountPath: /etc/alertmanager/certs
+          name: tls-assets
+          readOnly: true
+        - mountPath: /alertmanager
+          name: alertmanager-storage  # PVC 이름으로 변경
+        - mountPath: /etc/alertmanager/web_config/web-config.yaml
+          name: web-config
+          readOnly: true
+          subPath: web-config.yaml
+      - args:
+        - --listen-address=:8080
+        - --reload-url=http://127.0.0.1:9093/-/reload
+        - --config-file=/etc/alertmanager/config/alertmanager.yaml.gz
+        - --config-envsubst-file=/etc/alertmanager/config_out/alertmanager.env.yaml
+        - --watched-dir=/etc/alertmanager/config
+        command:
+        - /bin/prometheus-config-reloader
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SHARD
+          value: "-1"
+        image: ten1010.io/prometheus/prometheus-config-reloader:v0.76.1
+        imagePullPolicy: IfNotPresent
+        name: config-reloader
+        ports:
+        - containerPort: 8080
+          name: reloader-web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/alertmanager/config
+          name: config-volume
+          readOnly: true
+        - mountPath: /etc/alertmanager/config_out
+          name: config-out
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - args:
+        - --watch-interval=0
+        - --listen-address=:8081
+        - --config-file=/etc/alertmanager/config/alertmanager.yaml.gz
+        - --config-envsubst-file=/etc/alertmanager/config_out/alertmanager.env.yaml
+        - --watched-dir=/etc/alertmanager/config
+        command:
+        - /bin/prometheus-config-reloader
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: SHARD
+          value: "-1"
+        image: ten1010.io/prometheus/prometheus-config-reloader:v0.76.1
+        imagePullPolicy: IfNotPresent
+        name: init-config-reloader
+        ports:
+        - containerPort: 8081
+          name: reloader-web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - mountPath: /etc/alertmanager/config
+          name: config-volume
+          readOnly: true
+        - mountPath: /etc/alertmanager/config_out
+          name: config-out
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 2000
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: alertmanager-kube-promethe-alertmanager
+      serviceAccountName: alertmanager-kube-promethe-alertmanager
+      terminationGracePeriodSeconds: 120
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists
+      volumes:
+      - name: config-volume
+        secret:
+          defaultMode: 420
+          secretName: alertmanager-alertmanager-kube-promethe-alertmanager-generated
+      - name: tls-assets
+        projected:
+          defaultMode: 420
+          sources:
+          - secret:
+              name: alertmanager-alertmanager-kube-promethe-alertmanager-tls-assets-0
+      - emptyDir:
+          medium: Memory
+        name: config-out
+      - name: web-config
+        secret:
+          defaultMode: 420
+          secretName: alertmanager-alertmanager-kube-promethe-alertmanager-web-config
+      - emptyDir: {}
+        name: alertmanager-storage
+{{- end }}

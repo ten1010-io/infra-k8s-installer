@@ -1,0 +1,15 @@
+{{- if not .Values.dryRun }}
+{{- range $path, $_ := .Files.Glob "dashboards/*.json" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-%s" $.Chart.Name ($path | base | trimSuffix ".json" | lower | replace "_" "-") }}
+  namespace:  {{ include "promstackNamespace" $  }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  {{ $path | base }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}

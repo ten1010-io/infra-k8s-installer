@@ -1,0 +1,40 @@
+{
+  "namespace": "aipub",
+  "keycloak": {
+    "realm_name": "aipub",
+    "client_id": "k8s"
+  },
+  "agent": {
+    "datadog": false
+  },
+  "version": {
+    "aipub_version": "v4.3.0",
+    "image_base": "registry.ten1010.io:8443/aipub-4.3.0",
+    "api_tag": "1.3.2",
+    "usage_tag": "1.3.2",
+    "gateway_tag": "1.3.2",
+    "batch_tag": "1.3.2",
+    "adapter_tag": "1.3.2",
+    "frontend_tag": "1.19.0",
+    "project_controller": "project-controller:vanilla-1.0.3"
+  },
+  "domain": {
+    "aipub_domain": "cluster1.idc1.ten1010.io",
+    "aipub_host_prefix": "aipub",
+    "keycloak_host_prefix": "aipub-keycloak",
+    "harbor_host_prefix": "aipub-harbor"
+  },
+  "application": {
+    "api_profiles": "batch",
+    "api_flyway": false,
+    "ssh_port_min": "1024",
+    "ssh_port_max": "65535",
+    "volumes": [
+      {"type": "nfs", "value": "nfs"},
+      {"type": "storageclass", "value": "ontap-nas"}
+    ]
+  },
+  "ingress": {
+    "tls_secret_name": "aipub-tls"
+  }
+}

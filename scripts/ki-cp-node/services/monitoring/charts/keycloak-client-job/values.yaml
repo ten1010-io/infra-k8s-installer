@@ -1,0 +1,42 @@
+grafana:
+  namespace: prometheus
+  keycloakClient: grafana
+  grantType: client
+
+kibana:
+  namespace: efk
+  keycloakClient: kibana
+  grantType: client 
+
+keycloak:
+  namespace: keycloak
+  secretName: keycloak
+  serviceClientSecretName: keycloak-service-client
+  serviceClientName: service_client
+  url: https://keycloak.cluster3.idc1.ten1010.io
+  adminClientId: admin-cli
+  adminUsername: admin
+  tlsVerify: false
+
+targetRealms: k8s
+k8sConfigPath: ./rax_config
+
+image:
+  repository: keycloak-client-job
+  tag: "1.0.0"
+  imagePullPolicy: Never
+
+
+nodeSelector:
+   enabled: false
+#  enabled: true
+#  labels:
+#    node-role.kubernetes.io/control-plane: ""
+#
+tolerations:
+   enabled: false
+#  enabled: true
+#  values:
+#    - key: "node-role.kubernetes.io/control-plane"
+#      effect: "NoSchedule"
+#      operator: "Exists"

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aipub-notice-board-api.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: aipub-notice-baord-api
+    {{- include "aipub-notice-board-api.labels" . | nindent 4}}
+spec:
+  replicas: {{ .Values.replicas | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "aipub-notice-board-api.selectorLabels" . | nindent 6}}
+  template:
+    metadata:
+      labels:
+        app: aipub-notice-baord-api
+        {{- include "aipub-notice-board-api.selectorLabels" . | nindent 8}}
+    spec:
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - aipub-notice-board-api
+              topologyKey: kubernetes.io/hostname
+        {{- toYaml .Values.affinity | nindent 8 }}
+      containers:
+        - name: {{ include "aipub-notice-board-api.fullname" . | default .Chart.AppVersion }}
+          image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: ANB_ELASTICSEARCH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.elasticsearch.masterCredential }}
+                  key: username
+            - name: ANB_ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.elasticsearch.masterCredential }}
+                  key: password
+            - name: ANB_ELASTICSEARCH_HOST
+              value: "{{ .Values.elasticsearch.service.scheme | default "https" }}://{{ .Values.elasticsearch.service.name }}.{{ .Values.elasticsearch.namespace }}.svc.cluster.local:{{ .Values.elasticsearch.service.port }}"
+            - name: ANB_API_GATEWAY_HOST
+              value: "http://localhost:8008"
+            - name: ANB_BACKEND_CORS_ORIGINS
+              value: "http://localhost:8000,http://127.0.0.1:8000"
+          volumeMounts:
+            - name: staticfiles
+              mountPath: /app/staticfiles
+      volumes:
+        - name: staticfiles
+          persistentVolumeClaim:
+            claimName: {{ include "aipub-notice-board-api.fullname" . }}

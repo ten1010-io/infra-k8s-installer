@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-service-client-job
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed,before-hook-creation
+    "helm.sh/hook-weight": "-5"
+spec:
+  template:
+    metadata:
+      name: create-service-client-pod
+      namespace: {{ .Release.Namespace }}
+    spec:
+      {{- if .Values.nodeSelector.enabled }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector.labels | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations.enabled }}
+      tolerations:
+        {{- toYaml .Values.tolerations.values | nindent 8 }}
+      {{- end }}
+      serviceAccountName: service-client-sa
+      containers:
+      - name: create-service-client
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["python"]
+        args: ["create_service_client.py"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: GRAFANA_NAMESPACE
+          value: "{{ .Values.grafana.namespace }}"
+        - name: GRAFANA_KEYCLOAK_CLIENT
+          value: "{{ .Values.grafana.keycloakClient }}"
+        - name: GRAFANA_GRANT_TYPE
+          value: "{{ .Values.grafana.grantType }}"
+        - name: KEYCLOAK_NAMESPACE
+          value: "{{ .Values.keycloak.namespace }}"
+        - name: KEYCLOAK_SECRET_NAME
+          value: "{{ .Values.keycloak.secretName }}"
+        - name: KEYCLOAK_SERVICE_CLIENT_SECRET_NAME
+          value: "{{ .Values.keycloak.serviceClientSecretName }}"
+        - name: KEYCLOAK_SERVICE_CLIENT_NAME
+          value: "{{ .Values.keycloak.serviceClientName }}"
+        - name: KEYCLOAK_URL
+          value: "{{ .Values.keycloak.url }}"
+        - name: KEYCLOAK_TLS_VERIFY
+          value: "{{ .Values.keycloak.tlsVerify}}"
+        - name: ADMIN_CLIENT_ID
+          value: "{{ .Values.keycloak.adminClientId }}"
+        - name: ADMIN_USERNAME
+          value: "{{ .Values.keycloak.adminUsername }}"
+        - name: TARGET_REALMS
+          value: "{{ .Values.targetRealms }}"
+        - name: K8S_CONFIG_PATH
+          value: "{{ .Values.k8sConfigPath }}"
+      restartPolicy: OnFailure
+  backoffLimit: 4

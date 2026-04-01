@@ -1,0 +1,191 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-sso-gateway
+  pullPolicy: IfNotPresent
+  tag: "v4.0.0-LGD03"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "aipub-sso-gateway"
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1" #  ingressClassName: lb1
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: aipub.cluster10.idc1.ten1010.io # replace with domain
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: aipub-sso-gateway-tls
+      hosts:
+        - aipub.cluster10.idc1.ten1010.io # replace with domain
+
+resources: { }
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: [ ]
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  server:
+    port: 8080
+  spring:
+    profiles:
+      active: "production"
+    cloud:
+      gateway:
+        server:
+          webflux:
+            welcomeRoute:
+              id: "backend_gateway_welcome"
+              uri: "https://aipub-backend-gateway.cluster10.idc1.ten1010.io"
+              predicates:
+                path: "Path=/welcome/**"
+              filters:
+                welcomeAdapter:
+                  name: "WelcomeAdapter"
+            aipubBackend:
+              id: "backend_gateway"
+              uri: "https://aipub-backend-gateway.cluster10.idc1.ten1010.io"
+              predicates:
+                path: "Path=/api/**"
+              filters:
+                aipubAdapter:
+                  name: "WelcomeAdapter"
+            aipubFrontend:
+              id: "aipub_frontend"
+              uri: "https://aipub-frontend.cluster10.idc1.ten1010.io"
+              predicates:
+                path: "Path=/**"
+              filters:
+                aipubAdapter:
+                  name: "AipubAdapter"
+                  testMode: true
+            kibana:
+              id: "kibana"
+              predicates:
+                path: "Path=/kibana-admin/**"
+              uri: "https://kibana-kibana.aipub-efk.svc.cluster.local:5601"
+              filters:
+                basicAuthAdapter:
+                  name: "BasicAuthAdapter"
+                  args:
+                    adminUser: "elastic"
+                    adminPassword: "HlyCdtMmgP1fDCEc"
+                    userUser: "aipub"
+                    userPassword: "aipub1@"
+                removeRequestHeader:
+                  name: "RemoveRequestHeader"
+                  args:
+                    name: "Cookie"
+            streamlit:
+              id: "streamlit_main"
+              uri: "http://aipub-monitoring.aipub.svc.cluster.local:8501"
+              predicates:
+                path: "Path=/streamlit/**"
+              filters:
+                name: "BearerAuthAdapter"
+            notice:
+              id: "notice_main"
+              uri: "http://aipub-notice-board-api.aipub-efk.svc.cluster.local:8009"
+              predicates:
+                path: "Path=/notice/**"
+              filters:
+                arg: "StripPrefix=1"
+            alloc:
+              id: "alloc_main"
+              uri: "http://aipub-cluster-overview-api.aipub-promstack.svc.cluster.local:8008"
+              predicates:
+                path: "Path=/alloc/**"
+              filters:
+                arg: "StripPrefix=1"
+            report:
+              id: "report_main"
+              uri: "http://aipub-report.aipub.svc.cluster.local:8000"
+              predicates:
+                path: "Path=/report/**"
+              filters:
+                arg: "StripPrefix=1"
+            httpclient:
+              ssl:
+                useInsecureTrustManager: true
+              compression: true
+              websocketMaxFramePayloadLength: "25165824"  # 24 * 1024 * 1024 24MB
+  app:
+    domain:
+      keycloak:
+        serverUrl: "https://aipub-keycloak.cluster10.idc1.ten1010.io"
+        clientRealm: "aipub"
+        clientId: "k8s"
+        clientSecret: "FZdex58sKAOsjc8JZ0WzljxtAtFM4Odb"
+        verifyingSsl: false
+        keycloakPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiLAqIyfpThDQtDcNkf6ILncq9dUJ8HJ2soULtJCbBPG+CCTfGHMp0R2NxcubOh/DeJhbA02tuoqKCQL3nIrCXJ3YwRbaGnjaDiUnXxVw37S+oDq5sfXHm7cZkcohHRqQw5U6oBZG/282olpZY5oowWA6vVR5XWslYSxr0o0ogkTnPbdzu17aO8bPSCoQKTbt3eHrmjlwJoovYkj8HP5GJHDJ0I58pMuPy+mL6bxOBCCyMzTpvxYHLENzxDJTgjbbn9nXxuPrsqoymZQlAYymF/2eQq1gHd1stZSWUqIH9g5tbDNjD2i8z+9HanKUiRqfYSMM9Q594de26c4uG8pZPQIDAQAB"
+    cookie:
+      accessMaxAge: "1800"
+      refreshMaxAge: "2592000"
+      idMaxAge: "1800"
+      domain: ".cluster10.idc1.ten1010.io"
+    redirect:
+      indexUrl: "https://aipub-welcome.cluster10.idc1.ten1010.io"
+      aipubUrl: "https://aipub.cluster10.idc1.ten1010.io"
+  web:
+    client:
+      maxInMemorySize: "20971520"   # 20MB
+  cors:
+    allowedOrigins_0: "https://aipub.cluster10.idc1.ten1010.io"

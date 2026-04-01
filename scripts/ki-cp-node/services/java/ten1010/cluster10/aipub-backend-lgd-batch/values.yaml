@@ -1,0 +1,132 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/lgd-backend-batch
+  pullPolicy: IfNotPresent
+  tag: "v4.0.0-LGD03"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "lgd-backend-batch"
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: { }
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: [ ]
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  profiles:
+    active: production
+  spring:
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      aipub:
+        driverClassName: org.postgresql.Driver
+        jdbcUrl: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+        username: bn_keycloak
+        password: tmuaNZACpG
+        hikari:
+          maximumPoolSize: 10
+          minimumIdle: 5
+      batch:
+        driverClassName: org.postgresql.Driver
+        url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/lgd_eai
+        username: bn_keycloak
+        password: tmuaNZACpG
+        hikari:
+          maximumPoolSize: 10
+          minimumIdle: 5
+      lgd:
+        driverClassName: org.postgresql.Driver
+        url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/lgd_eai
+        username: bn_keycloak
+        password: tmuaNZACpG
+        hikari:
+          maximumPoolSize: 10
+          minimumIdle: 5
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+      properties:
+        hibernate:
+          formatSql: false
+          defaultBatchFetchSize: 100
+  app:
+    gateway:
+      backendUrl: "https://aipub-backend-gateway.cluster10.idc1.ten1010.io"
+      username: "testuser"
+      password: "asdasdasd"
+    schedule:
+      crontab:
+        empCreateJob: 0 47 17 * * ?
+      interval:
+        eaiAipubJob: 10
+        createKeycloakJob: 10
+        createHarborJob: 10
+        createK8sJob: 10
+        disableKeycloakJob: 123
+        deleteHarborJob: 125
+        deleteK8sJob: 127
+    aipubAdmin:
+      list:
+        admin1: ajskd123@lgdisplay.com
+        admin2: jspark9608@lgdisplay.com
+        admin3: hanshine@lgdpartner.com
+        admin4: surimeom@lgdpartner.com

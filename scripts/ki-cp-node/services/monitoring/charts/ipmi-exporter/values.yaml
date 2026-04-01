@@ -1,0 +1,57 @@
+# 이 values.yaml 파일은 DaemonSet 방식 배포와 ServiceMonitor 활성화를 위해 수정되었습니다.
+
+image:
+  repository: ki-cp.ki.local:5001/aipub-4.3.0/monitoring/ipmi-exporter
+  tag: "" # 원하는 태그를 입력하세요 (없으면 Chart.yaml의 appVersion 사용)
+  pullPolicy: IfNotPresent
+
+nodeSelector: {}
+tolerations:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/control-plane
+    operator: Exists
+affinity: {}
+
+service:
+  type: ClusterIP
+  port: 9290
+  annotations: {}
+
+resources: {}
+  #limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  #requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+additionalAnnotations: {}
+
+# 컨테이너 보안 설정
+containerSecurityContext:
+  privileged: true
+  runAsUser: 0
+  allowPrivilegeEscalation: true
+
+# Prometheus ServiceMonitor 설정 (클러스터에 Prometheus가 배포된 상태)
+serviceMonitor:
+  enabled: true
+  namespace: aipub-promstack # ServiceMonitor가 생성될 네임스페이스 (환경에 맞게 수정)
+  interval: 30s # 스크랩 간격
+  telemetryPath: /metrics # 메트릭 경로 (Exporter가 사용하는 경로)
+  timeout: 10s # 스크랩 타임아웃
+  labels:
+    release: prometheus-stack # Prometheus Operator가 스크랩하도록 할 라벨
+
+configSecret:
+  enabled: false
+  name: ipmi-secret
+  key: config.yml
+
+modules:
+  default:
+    driver: "OPEN" # 로컬 인밴드 모드로 변경
+    privilege: "operator" # 권한 설정 (환경에 맞게 조정)
+    timeout: 10000 # 타임아웃 설정 (밀리초)
+    collectors:
+      - ipmi # IPMI 컬렉터만 사용

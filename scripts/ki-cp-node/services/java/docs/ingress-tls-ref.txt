@@ -1,0 +1,15 @@
+# 1. CA 생성
+./ingress-tls-issuer-tool.sh create-ca "*.example.com" --days 3650
+
+# 2. (옵션) TLS 생성 (Secret 없이)
+./ingress-tls-issuer-tool.sh create-tls-standalone "api.example.com" --days 3650
+
+# 3. TLS + Secret 생성
+./ingress-tls-issuer-tool.sh create-tls-secret my-tls -n default -dn api.example.com
+
+# AIPUB 사용
+# /ingress-tls-issuer-tool/tls-crt-issue-tool/output/ca.crt, /ingress-tls-issuer-tool/tls-crt-issue-tool/output/ca.key 경로에 위치
+
+sudo ./ingress-tls-issuer-tool.sh create-tls-secret aipub-keycloak-tls --namespace aipub --domain-name "aipub-keycloak.cluster5.idc1.ten1010.io"
+sudo ./ingress-tls-issuer-tool.sh create-tls-secret aipub-harbor-tls --namespace aipub --domain-name "aipub-harbor.cluster5.idc1.ten1010.io"
+sudo ./ingress-tls-issuer-tool.sh create-tls-secret aipub-backend-adapter-tls --namespace aipub --domain-name "aipub.cluster5.idc1.ten1010.io"

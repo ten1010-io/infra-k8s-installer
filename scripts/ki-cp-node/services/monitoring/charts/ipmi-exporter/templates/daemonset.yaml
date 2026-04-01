@@ -1,0 +1,73 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "prometheus-ipmi-exporter.fullname" . }}
+  labels:
+    {{- include "prometheus-ipmi-exporter.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "prometheus-ipmi-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "prometheus-ipmi-exporter.selectorLabels" . | nindent 8 }}
+      {{- with .Values.additionalAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      containers:
+        - name: ipmi-exporter
+          image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "--config.file"
+            - "/config.yml"
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config.yml
+              subPath: config.yml
+              readOnly: true
+            # 각 노드의 IPMI 장치 접근을 위한 볼륨 마운트
+            - name: ipmi-device
+              mountPath: /dev/ipmi0
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+
+      volumes:
+        - name: config-volume
+        {{- if .Values.configSecret.enabled }}
+          secret:
+            secretName: {{ .Values.configSecret.name }}
+            items:
+            - key: {{ .Values.configSecret.key }}
+              path: config.yml
+        {{- else }}
+          configMap:
+            name: {{ template "prometheus-ipmi-exporter.fullname" . }}
+        {{- end }}
+        # 각 노드의 IPMI 장치 접근을 위한 hostPath 볼륨
+        - name: ipmi-device
+          hostPath:
+            path: /dev/ipmi0
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}

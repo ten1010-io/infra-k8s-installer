@@ -1,0 +1,50 @@
+{{- if eq .Values.storageProvisioning.type "static" }}
+  {{- if eq .Values.storageProvisioning.static.type "local"  }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "aipub-notice-board-api.fullname" . }}
+  labels:
+    {{- include "aipub-notice-board-api.labels" . | nindent 4 }}
+spec:
+  capacity:
+    storage: {{ .Values.storageProvisioning.size | default "20Gi" }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  local:
+    path: {{ .Values.storageProvisioning.static.local.path }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        {{- range .Values.storageProvisioning.static.local.nodeSelector }}
+        {{- range $key, $value := . }}
+        - key: {{ $key }}
+          operator: In
+          values:
+          - {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+  {{- else if eq .Values.storageProvisioning.static.type "nfs" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "aipub-notice-board-api.fullname" . }}
+  labels:
+    {{- include "aipub-notice-board-api.labels" . | nindent 4 }}
+spec:
+  capacity:
+    storage: {{ .Values.storageProvisioning.size | default "20Gi" }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  nfs:
+    server: "{{ .Values.storageProvisioning.static.nfs.server }}"
+    path: "{{- include "aipub-notice-board-api.nfsPath" . }}"
+  {{- end }}
+{{- end }}

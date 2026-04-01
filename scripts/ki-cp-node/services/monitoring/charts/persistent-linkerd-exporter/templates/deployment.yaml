@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: persistent-linkerd-exporter
+  namespace:  {{ include "promstackNamespace" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: persistent-linkerd-exporter
+  template:
+    metadata:
+      labels:
+        app: persistent-linkerd-exporter
+        monitor: persistent-linkerd-exporter
+    spec:
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      serviceAccountName: persistent-linkerd-exporter
+      {{- if .Values.git_clone_init_container }}
+      volumes:
+      - name: code
+        emptyDir: {}
+      initContainers:
+      - name: clone-repo
+        image: "{{ if .Values.initContainer.image.registry }}{{ .Values.initContainer.image.registry }}/{{ end }}{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          git clone https://{{ .Values.git_user_name }}:{{ .Values.git_token }}@github.com/ten1010-io/aipub-monitoring-tools.git /app
+          cd /app
+          git checkout {{ .Values.git_branch | default "main" }}
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      {{- end }}
+      containers:
+      - name: persistent-linkerd-exporter
+        {{- if .Values.git_clone_init_container }}
+        image: python:3.10-slim
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - |
+          cd /app/persistent-linkerd-exporter
+          pip install -r requirements.txt
+          python3 exporter.py
+        volumeMounts:
+        - name: code
+          mountPath: /app
+        {{- else }}
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - |
+          python3 exporter.py
+        {{- end }}
+        ports:
+        - containerPort: 8000
+          name: metrics
+          protocol: TCP
+        env:
+        - name: METRIC_EXPORT_MODE
+          value: {{ .Values.metric_export_mode | quote }}
+        - name: PROMETHEUS_URI
+          value: {{ include "prometheusHost" . | quote }}
+        - name: PUSHGATEWAY_URI
+          value: {{ include "pushgatewayHost" . | quote }}
+        - name: SCRAPE_INTERVAL_SECONDS
+          value: {{ .Values.scrape_interval | quote }}
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}

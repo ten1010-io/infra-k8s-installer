@@ -1,0 +1,7 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Execute 4_project-controller.sh
+      shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/4_project-controller.sh --config {{ java_service_config_path }}"
+      when: inventory_hostname == k8s_cp_nodes | first

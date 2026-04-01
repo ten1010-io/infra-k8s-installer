@@ -1,0 +1,104 @@
+replicaCount: 1
+
+image:
+  repository: aipub-web
+  pullPolicy: IfNotPresent
+  tag: "v4.0.0-LGD03"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "lb1" #  ingressClassName: lb1
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: aipub-frontend.cluster10.idc1.ten1010.io # replace with domain
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: aipub-frontend-tls
+      hosts:
+        - aipub-frontend.cluster10.idc1.ten1010.io # replace with domain
+
+resources: { }
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: [ ]
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubApiUrl: https://aipub.cluster10.idc1.ten1010.io
+  aipubBaseHost: cluster10.idc1.ten1010.io
+  aipubLogoutRedirectUrl: https://aipub-welcome.cluster7.idc1.ten1010.io
+  aipubBrand: "lgd"
+  aipubDocsUrl: https://aipub-docs.cluster10.idc1.ten1010.io
+  aipubHarborUrl: https://aipub-harbor.cluster10.idc1.ten1010.io
+  aipubKeycloakUrl: https://aipub-keycloak.cluster10.idc1.ten1010.io
+  aipubKibanaAdminUrl: https://aipub.cluster10.idc1.ten1010.io/kibana-admin
+  aipubKibanaUserUrl: https://aipub.cluster10.idc1.ten1010.io/kibana-admin
+  aipubMode: ops
+  aipubNodeUrl: https://aipub.cluster10.idc1.ten1010.io/alloc
+  aipubNoticeUrl: https://aipub.cluster10.idc1.ten1010.io/notice
+  aipubReportUrl: https://aipub.cluster10.idc1.ten1010.io/report
+  aipubStreamlitUrl: https://aipub.cluster10.idc1.ten1010.io/streamlit
+  aipubSshPortMax: "12999"
+  aipubSshPortMin: "12000"
+  aipubVolumes: '[{"type":"nfs","value":"nfs"},{"type":"storageclass","value":"ontap-nas"},{"type":"storageclass","value":"vastdata-eth-delete"},{"type":"storageclass","value":"vastdata-eth-retain"},{"type":"storageclass","value":"vastdata-ib-delete"},{"type":"storageclass","value":"vastdata-ib-retain"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html

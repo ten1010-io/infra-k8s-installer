@@ -1,0 +1,17 @@
+sudo cp /etc/kubernetes/ca.crt /opt/aipub/certs/k8s-ca.crt 를 통해 kubernetes 인증서를 경로에 복사합니다.
+
+/opt/aipub/certs 경로에 aipub 루트 인증서를 aipub-ca.crt이름으로 위치시킵니다.
+=> /opt/aipub/certs/aipub-ca.crt
+해당 인증서는 harbor, keycloak에 대한 인증서에 대한 루트 인증서입니다.
+
+sudo kubectl exec ubuntu-cert-pod -it -- /bin/bash 명령어를 통해 컨테이너에 들어갑니다
+
+컨테이너 내부에서 update-ca-certificates 명령어를 통해 인증서를 업데이트합니다
+
+cp /etc/ssl/certs/ca-certificates.crt /usr/local/share/ca-certificates/ca-certificates.crt 명령어를 통해서 인증서 체이닝을 추출합니다.
+
+파드 컨테이너에서 exit을 통해 호스트으로 이동합니다.
+
+위 과정을 통해 생성된 /opt/aipub/certs/ca-certificates.crt를 /etc/ssl/certs 에 복사합니다.
+
+/opt/aipub/certs/ca-certificates.crt를 모든 노드마다 설정합니다.

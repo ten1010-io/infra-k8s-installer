@@ -1,0 +1,40 @@
+{
+  "namespace": "aipub",
+  "keycloak": {
+    "realm_name": "aipub",
+    "client_id": "k8s"
+  },
+  "agent": {
+    "datadog": false
+  },
+  "version": {
+    "aipub_version": "v4.4.0",
+    "image_base": "ki-cp.ki.local:5001/aipub-4.4.0",
+    "api_tag": "1.4.1-6697",
+    "usage_tag": "1.4.1-6697",
+    "gateway_tag": "1.4.1-6697",
+    "batch_tag": "1.4.1-6697",
+    "adapter_tag": "1.4.1-6697",
+    "frontend_tag": "1.22.0-dev",
+    "project_controller": "1.4.0"
+  },
+  "domain": {
+    "aipub_domain": "knuai.kangwon.ac.kr",
+    "aipub_host_prefix": "main",
+    "keycloak_host_prefix": "keycloak",
+    "harbor_host_prefix": "harbor"
+  },
+  "application": {
+    "api_profiles": "batch",
+    "api_flyway": true,
+    "ssh_port_min": "1024",
+    "ssh_port_max": "65535",
+    "volumes": [
+      {"type": "nfs", "value": "nfs"},
+      {"type": "storageclass", "value": "nfs-csi"}
+    ]
+  },
+  "ingress": {
+    "tls_secret_name": "aipub-backend-adapter-tls"
+  }
+}

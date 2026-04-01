@@ -1,0 +1,218 @@
+replicaCount: 1
+
+image:
+  repository: "" # ## HELM installer ##
+  pullPolicy: Always
+  tag: "" # ## HELM installer ##
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "aipub-backend-adapter"
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-adapter.logs: '[{"source": "java", "service": "aipub-backend-adapter"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: "" # ## HELM installer ##
+      paths:
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /token
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /k8s
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /logout
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /sse
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /mcp
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-adapter
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix
+  tls:
+    - secretName: "" # ## HELM installer ##
+      hosts:
+        - "" # ## HELM installer ##
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    secret:
+      secretName: custom-ca-certs
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  server:
+    port: &serverPort 8080
+  spring:
+    profiles:
+      active: "production"
+    cloud:
+      gateway:
+        server:
+          webflux:
+            httpclient:
+              ssl:
+                useInsecureTrustManager: true
+              compression: true
+              websocketMaxFramePayloadLength: "25165824"  # 24 * 1024 * 1024 24MB
+  app:
+    domain:
+      auth:
+        backendServerUrl: http://aipub-backend-gateway.aipub.svc.cluster.local:8080
+        basicAuthUsername: testuser
+        basicAuthPassword: asdasdasd
+        verifyingSsl: false
+    cookie:
+      accessMaxAge: "1800"
+      refreshMaxAge: "2592000"
+      idMaxAge: "1800"
+      domain: "" # ## HELM installer ##
+    lgd:
+      enabled: false
+      testMode: false
+    redirect:
+      indexUrl: "" # ## HELM installer ##
+    proxy:
+      frontendUrl: http://aipub-frontend.aipub.svc.cluster.local
+      streamlitUrl: http://aipub-monitoring.aipub.svc.cluster.local:8501
+      noticeUrl: http://aipub-notice-board-api.aipub-efk.svc.cluster.local:8009
+      allocUrl: http://aipub-cluster-overview-api.aipub-promstack.svc.cluster.local:8008
+      reportUrl: http://aipub-report.aipub.svc.cluster.local:8000
+      kibana:
+        url: https://kibana-kibana.aipub-efk.svc.cluster.local:5601
+        admin:
+          user: elastic
+          password: "" # ## HELM installer ##
+        user:
+          user: aipub
+          password: aipub
+      webTerminal:
+        workspaceControllerUrl: http://workspace-controller.aipub.svc.cluster.local:8080
+  web:
+    client:
+      maxInMemorySize: "20971520"   # 20MB
+  cors:
+    allowedOrigin: "" # ## HELM installer ##
+  logging:
+    level:
+      orgSpringframeworkCloud: "" # ## HELM installer ##
+      orgSpringframeworkWeb: "" # ## HELM installer ##
+  management:
+    tracing:
+      enabled: true
+
+agent:
+  datadog: "false"
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-adapter"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"
+
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: *serverPort
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: *serverPort
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3

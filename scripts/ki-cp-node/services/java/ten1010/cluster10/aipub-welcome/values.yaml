@@ -1,0 +1,95 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ten1010-io/aipub-welcome
+  pullPolicy: IfNotPresent
+  tag: "v4.0.0-LGD03"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "aipub-welcome"
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: aipub-welcome.cluster10.idc1.ten1010.io # replace with domain
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: aipub-welcome-tls
+      hosts:
+        - aipub-welcome.cluster10.idc1.ten1010.io # replace with domain
+
+resources: { }
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+
+volumeMounts:
+  - mountPath: /etc/ssl/certs
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity: [ ]
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  server:
+    port: 8080
+  spring:
+    profiles:
+      active: "production"
+  app:
+    gateway:
+      ssoUrl: "https://aipub.cluster10.idc1.ten1010.io"
+      backendUrl: "https://aipub.cluster10.idc1.ten1010.io"

@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "aipub-crd-exporter.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "aipub-crd-exporter.labels" . | nindent 4 }}
+    release: {{ .Values.monitoring.prometheusRelease }}
+    {{- if .Values.monitoring.labels }}
+{{ toYaml .Values.monitoring.labels | indent 4 }}
+    {{- else }}
+    aipub.prometheus/select: "true"
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "aipub-crd-exporter.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  endpoints:
+  - port: http-metrics
+    path: /metric
+    interval: {{ .Values.monitoring.interval }}
+    scrapeTimeout: {{ .Values.monitoring.timeout }}

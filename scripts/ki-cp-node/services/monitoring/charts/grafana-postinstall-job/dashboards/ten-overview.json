@@ -1,0 +1,1768 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 54,
+  "links": [],
+  "panels": [
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(kube_node_info)",
+          "interval": "",
+          "legendFormat": "Nodes",
+          "refId": "A"
+        }
+      ],
+      "title": "노드",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 2,
+        "x": 3,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(kube_deployment_metadata_generation)",
+          "interval": "",
+          "legendFormat": "전체 워크로드 수",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "count(kube_job_info)",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "전체 작업 수",
+          "refId": "B"
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 2,
+        "x": 5,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value_and_name"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(\n  (GPU_TOTAL{is_block=\"false\", node!=\"cluster\"} \n  * on(node) \n  group_left() \n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}) or on() vector(0)\n) + \nsum(\n  (GPU_TOTAL{is_block=\"true\", node!=\"cluster\"} \n  * on(node) \n  group_left() \n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}) or on() vector(0)\n) / 100",
+          "interval": "",
+          "legendFormat": "전체 GPU ",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  (GPU_FREE{is_block=\"false\", node!=\"cluster\"}\n  * on(node)\n  group_left()\n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}) or on() vector(0)\n)\n+\nsum(\n  (GPU_FREE{is_block=\"true\", node!=\"cluster\"}\n  * on(node)\n  group_left()\n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}) or on() vector(0)\n) / 100",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "가용 가능 GPU",
+          "refId": "B"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "binary": {
+              "left": "block_total",
+              "operator": "+",
+              "reducer": "sum",
+              "right": ""
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "from": "-3",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 40
+              },
+              {
+                "color": "green",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 7,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "/^할당 GPU 활용률$/",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "\n(sum(GPU_TOTAL{is_block=\"false\", node!=\"cluster\"})+sum(GPU_TOTAL{is_block=\"true\", node!=\"cluster\"})/100)-(sum(GPU_FREE{is_block=\"false\", node!=\"cluster\"})+sum(GPU_FREE{is_block=\"true\", node!=\"cluster\"})/100)",
+          "hide": true,
+          "interval": "",
+          "legendFormat": "할당 GPU 활용률",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "(sum(GPU_POD_UTIL)/sum(GPU_POD_UTIL_LIMIT{}))*100",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "할당 GPU 활용률",
+          "refId": "B"
+        }
+      ],
+      "title": "할당 GPU 활용률",
+      "type": "gauge"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-BlPu"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "dtdhms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 11,
+        "y": 0
+      },
+      "id": 15,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "text": {}
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "topk(5, sort(max by (namespace, pod, deployment_name) (\n  max_over_time(kube_pod_owner{owner_kind=\"ReplicaSet\"}[30d])\n  * on(namespace, owner_name) group_left(deployment_name)\n  max by (namespace, owner_name, deployment_name) (\n    label_replace(\n      label_replace(\n        max_over_time(kube_replicaset_owner{owner_kind=\"Deployment\"}[30d]),\n        \"deployment_name\", \"$1\", \"owner_name\", \"(.+)\"\n      ),\n      \"owner_name\", \"$1\", \"replicaset\", \"(.+)\"\n    )\n  )\n) * on(namespace, pod) group_right(deployment_name) (\n  max by (namespace, pod) (\n    max_over_time(timestamp(kube_pod_created{})[30d:1m])\n    -\n    max_over_time(kube_pod_created{}[30d])\n  )\n)))",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{deployment_name}}",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "title": "워크로드 기간 ",
+      "transformations": [
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Time"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "bargauge"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "name"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 122
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Index"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 68
+              },
+              {
+                "id": "noValue",
+                "value": "-"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "디바이스"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 128
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "할당 가능량"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "전체 잔여량"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 15,
+        "y": 0
+      },
+      "id": 18,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "(\r\n  label_replace(\r\n    sum by (name) (\r\n      GPU_FREE{is_block=\"false\", node!=\"cluster\"}\r\n      * on(node)\r\n      group_left()\r\n      kube_node_status_condition{condition=\"Ready\", status=\"true\"}\r\n    ),\r\n    \"name\",\r\n    \"$1\",\r\n    \"name\",\r\n    \"nvidia-(.*)\"\r\n  )\r\n) or (\r\n  label_replace(\r\n    sum by (name) (\r\n      GPU_FREE{is_block=\"true\", node!=\"cluster\"}\r\n      * on(node)\r\n      group_left()\r\n      kube_node_status_condition{condition=\"Ready\", status=\"true\"}\r\n    ),\r\n    \"name\",\r\n    \"block-$1\",\r\n    \"name\",\r\n    \"nvidia-(.*)\"\r\n  )\r\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{name}}-{{resource}}",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\r\n  label_replace(\r\n    max by (name) (\r\n      GPU_FREE{is_block=\"false\", node!=\"cluster\"}\r\n      * on(node)\r\n      group_left()\r\n      kube_node_status_condition{condition=\"Ready\", status=\"true\"}\r\n    ),\r\n    \"name\",\r\n    \"$1\",\r\n    \"name\",\r\n    \"nvidia-(.*)\"\r\n  )\r\n) or (\r\n  label_replace(\r\n    max by (name) (\r\n      GPU_FREE{is_block=\"true\", node!=\"cluster\"}\r\n      * on(node)\r\n      group_left()\r\n      kube_node_status_condition{condition=\"Ready\", status=\"true\"}\r\n    ),\r\n    \"name\",\r\n    \"block-$1\",\r\n    \"name\",\r\n    \"nvidia-(.*)\"\r\n  )\r\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "GPU 유휴자원",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "container": true,
+              "endpoint": true,
+              "instance": true,
+              "is_block": true,
+              "job": true,
+              "namespace": true,
+              "pod": true,
+              "resource": false
+            },
+            "indexByName": {},
+            "renameByName": {}
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {}
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "name"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Value #A": 2,
+              "Value #B": 1,
+              "name": 0
+            },
+            "renameByName": {
+              "Value #A": "전체 잔여량",
+              "Value #B": "할당 가능량",
+              "name": "디바이스"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 3,
+        "x": 21,
+        "y": 0
+      },
+      "id": 21,
+      "options": {
+        "folderId": 0,
+        "maxItems": 10,
+        "query": "",
+        "showHeadings": true,
+        "showRecentlyViewed": false,
+        "showSearch": true,
+        "showStarred": false,
+        "tags": [
+          "ten"
+        ]
+      },
+      "pluginVersion": "7.5.17",
+      "timeFrom": null,
+      "timeShift": null,
+      "type": "dashlist"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "red",
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 4
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "count(kube_node_info)-sum(kube_node_status_condition{condition=\"Ready\", status=\"true\"})\n",
+          "instant": false,
+          "interval": "",
+          "legendFormat": "Nodes",
+          "refId": "A"
+        }
+      ],
+      "title": "장애 발생 노드",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 10,
+      "panels": [],
+      "title": "노드 별 자원 활용률",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "align": null,
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "node"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "",
+                    "url": "/d/tennodes?var-instance=${__data.fields.node}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "displayName",
+                "value": "CPU Core Usage "
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              },
+              {
+                "id": "displayName",
+                "value": "GPU Count"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A / Value #B"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "basic"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "noValue",
+                "value": "0 B"
+              },
+              {
+                "id": "custom.align",
+                "value": null
+              },
+              {
+                "id": "displayName",
+                "value": "GPU Memory Usage"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU Usage"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "gradient-gauge"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "# of GPUs"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU Memory Usage"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "noValue",
+                "value": "B"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU Usage(%)"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "from": "",
+                    "id": 1,
+                    "text": "0%",
+                    "to": "",
+                    "type": 1,
+                    "value": "NaN"
+                  }
+                ]
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "gradient-gauge"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU Capacity"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "noValue",
+                "value": "N/A"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 12,
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{}) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "CPU Utilization",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  GPU_TOTAL{node!=\"cluster\", is_block=\"false\"} \n  * on(node) group_left()\n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}\n) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "GPU Utilization",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_MEMORY{}) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "GPU Memory Utilization",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  GPU_TOTAL{node!=\"cluster\", is_block=\"true\"} /100\n  * on(node) group_left()\n  kube_node_status_condition{condition=\"Ready\", status=\"true\"}\n) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "D"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_POD_UTIL{}) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(node_namespace_pod_container:container_memory_working_set_bytes{}) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "F"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(GPU_DEVICE_CAPACITY_UTIL{}/100) by (node)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "G"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "node"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "node",
+                "Value #A",
+                "Value #B",
+                "Value #C",
+                "Value #D",
+                "Value #E",
+                "Value #F",
+                "Value #G"
+              ]
+            }
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "Value",
+            "renamePattern": "CPU Usage"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "# of GPUs",
+            "mode": "reduceRow",
+            "reduce": {
+              "include": [
+                "Value #D",
+                "Value #B"
+              ],
+              "reducer": "sum"
+            },
+            "replaceFields": false
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Value #B": true,
+              "Value #D": true,
+              "Value #E": false
+            },
+            "indexByName": {
+              "# of GPUs": 4,
+              "Value #A": 1,
+              "Value #B": 3,
+              "Value #C": 7,
+              "Value #D": 5,
+              "Value #E": 6,
+              "Value #F": 2,
+              "node": 0
+            },
+            "renameByName": {
+              "GPU Total": "",
+              "Value #B": "",
+              "Value #D": "",
+              "Value #E": "GPU Usage",
+              "Value #F": "CPU Memory Usage"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "GPU Usage(not null)",
+            "binary": {
+              "left": "GPU Usage",
+              "operator": "/",
+              "reducer": "sum",
+              "right": "# of GPUs"
+            },
+            "mode": "reduceRow",
+            "reduce": {
+              "include": [
+                "GPU Usage"
+              ],
+              "reducer": "lastNotNull"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "GPU Usage(%)",
+            "binary": {
+              "left": "GPU Usage(not null)",
+              "operator": "/",
+              "reducer": "sum",
+              "right": "Value #G"
+            },
+            "mode": "binary",
+            "reduce": {
+              "include": [
+                "GPU Usage(%)"
+              ],
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "# of GPUs": true,
+              "GPU Usage": true,
+              "GPU Usage(not null)": true
+            },
+            "indexByName": {
+              "# of GPUs": 3,
+              "CPU Memory Usage": 2,
+              "GPU Usage": 6,
+              "GPU Usage(%)": 5,
+              "GPU Usage(not null)": 8,
+              "Value #A": 1,
+              "Value #C": 7,
+              "Value #G": 4,
+              "node": 0
+            },
+            "renameByName": {
+              "Value #A": "",
+              "Value #G": "GPU Capacity"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 8,
+      "panels": [],
+      "title": "네임스페이스 별 자원 활용률",
+      "type": "row"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "align": null,
+            "displayMode": "auto",
+            "filterable": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "displayName",
+                "value": "CPU Core Usage "
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #B"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              },
+              {
+                "id": "displayName",
+                "value": "GPU Count"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A / Value #B"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "basic"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #C"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "noValue",
+                "value": "0 B"
+              },
+              {
+                "id": "custom.align",
+                "value": null
+              },
+              {
+                "id": "displayName",
+                "value": "GPU Memory Usage"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU Usage(%)"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "gradient-gauge"
+              },
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "noValue",
+                "value": "0%"
+              },
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "GPU Capacity"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "noValue",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU Memory Usage"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              },
+              {
+                "id": "noValue",
+                "value": "B"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Namespace dashboard",
+                    "url": "/d/k8sresourcesworkloadsnamespace?var-namespace=${__data.fields.Namespace}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 13,
+      "options": {
+        "frameIndex": 0,
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.17",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{}) by (namespace)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "CPU Utilization",
+          "refId": "A"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  label_replace(\n    GPU_POD_UTIL_LIMIT{},\n    \"namespace\",\n    \"$1\",\n    \"exported_namespace\",\n    \"(.*)\"\n  )/100\n) by (namespace)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  label_replace(\n    GPU_POD_MEMORY{},\n    \"namespace\",\n    \"$1\",\n    \"exported_namespace\",\n    \"(.*)\"\n  )\n) by (namespace)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 3,
+          "legendFormat": "GPU Memory Utilization",
+          "refId": "C"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(\n  label_replace(\n    GPU_POD_UTIL{},\n    \"namespace\",\n    \"$1\",\n    \"exported_namespace\",\n    \"(.*)\"\n  )\n) by (namespace)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "",
+          "refId": "E"
+        },
+        {
+          "exemplar": true,
+          "expr": "sum(node_namespace_pod_container:container_memory_working_set_bytes{}) by (namespace)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "F"
+        },
+        {
+          "exemplar": true,
+          "expr": "(\n  sum(\n    kube_pod_container_resource_limits{\n      job=\"kube-state-metrics\",\n      resource=~\".*ten1010_io_gpu_.*\"\n    } * on(pod, namespace) group_left()\n    (kube_pod_status_phase{phase=~\"Running|Created\"} == 1)\n  ) by (namespace)\n)\nor\n(\n  sum(\n    kube_pod_container_resource_limits{\n      job=\"kube-state-metrics\",\n      resource=~\".*ten1010_io_block_.*\"\n    } * on(pod, namespace) group_left()\n    (kube_pod_status_phase{phase=~\"Running|Created\"} == 1)\n  ) by (namespace) / 100\n)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
+          "refId": "D"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "namespace"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "namespace",
+                "Value #A",
+                "Value #C",
+                "Value #E",
+                "Value #F",
+                "Value #D",
+                "Value #B"
+              ]
+            }
+          }
+        },
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "Value",
+            "renamePattern": "CPU Usage"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Value #B": false,
+              "Value #D": true
+            },
+            "indexByName": {
+              "# of GPUs": 4,
+              "Value #A": 1,
+              "Value #B": 3,
+              "Value #F": 2,
+              "namespace": 0
+            },
+            "renameByName": {
+              "GPU Total": "",
+              "Value #A": "",
+              "Value #B": "",
+              "Value #D": "",
+              "Value #E": "GPU Usage w/o idle",
+              "Value #F": "CPU Memory Usage",
+              "namespace": "Namespace"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "GPU Usage(%)",
+            "binary": {
+              "left": "GPU Usage w/o idle",
+              "operator": "/",
+              "reducer": "sum",
+              "right": "Value #B"
+            },
+            "mode": "binary",
+            "reduce": {
+              "reducer": "sum"
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "CPU Memory Usage": false,
+              "GPU Usage w/o idle": true,
+              "Value #B": false
+            },
+            "indexByName": {
+              "CPU Memory Usage": 2,
+              "GPU Usage w/o idle": 6,
+              "GPU Usage(%)": 4,
+              "Namespace": 0,
+              "Value #A": 1,
+              "Value #B": 3,
+              "Value #C": 5
+            },
+            "renameByName": {
+              "# of GPUs": "",
+              "CPU Memory Usage": "CPU Memory Usage",
+              "GPU Usage w/o idle": "",
+              "GPU Usage(%)": "",
+              "Value #A": "",
+              "Value #B": "GPU Capacity",
+              "Value #C": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 25,
+      "panels": [
+        {
+          "datasource": null,
+          "description": "",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "fixedColor": "yellow",
+                "mode": "fixed"
+              },
+              "mappings": [
+                {
+                  "from": "",
+                  "id": 1,
+                  "text": "",
+                  "to": "",
+                  "type": 1
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "가용 가능 GPU 자원"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "fixedColor": "green",
+                      "mode": "fixed"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 2,
+            "x": 0,
+            "y": 21
+          },
+          "id": 19,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "text": {},
+            "textMode": "value_and_name"
+          },
+          "pluginVersion": "7.5.17",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "sum(GPU_DEVICE_CAPACITY_UTIL{}/100)",
+              "interval": "",
+              "legendFormat": "전체 GPU 자원",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "sum(GPU_DEVICE_CAPACITY_UTIL{}/100)- (sum(GPU_POD_UTIL_LIMIT{}/100) or on() vector(0))",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "가용 가능 GPU 자원",
+              "refId": "B"
+            }
+          ],
+          "type": "stat"
+        },
+        {
+          "datasource": null,
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "continuous-BlPu"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "dtdhms"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 3,
+            "x": 3,
+            "y": 21
+          },
+          "id": 16,
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true,
+            "text": {}
+          },
+          "pluginVersion": "7.5.17",
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "topk(4, \n  sort(\n    max by (namespace, pod, job_name, owner_kind) (\n      max_over_time(kube_pod_owner{owner_kind=~\"Job|PyTorchJob|MPIJob\"}[30d])\n      * on(namespace, owner_name) group_left(job_name)\n      max by (namespace, owner_name, job_name) (\n        label_replace(\n          max_over_time(kube_pod_owner{owner_kind=~\"Job|PyTorchJob|MPIJob\"}[30d]),\n          \"job_name\", \"$1\", \"owner_name\", \"(.+)\"\n        )\n      )\n    ) * on(namespace, pod) group_right(job_name, owner_kind) (\n      max by (namespace, pod) (\n        max_over_time(timestamp(kube_pod_created{})[30d:1m])\n        -\n        max_over_time(kube_pod_created{}[30d])\n      )\n    )\n  )\n)",
+              "instant": true,
+              "interval": "",
+              "legendFormat": "{{job_name}}",
+              "refId": "A"
+            },
+            {
+              "exemplar": true,
+              "expr": "",
+              "hide": false,
+              "interval": "",
+              "legendFormat": "",
+              "refId": "B"
+            }
+          ],
+          "title": "단일/분산 작업 기간 ",
+          "transformations": [
+            {
+              "id": "sortBy",
+              "options": {
+                "fields": {},
+                "sort": [
+                  {
+                    "field": "Time"
+                  }
+                ]
+              }
+            }
+          ],
+          "type": "bargauge"
+        }
+      ],
+      "title": "HiddenPanels(테스트중)",
+      "type": "row"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [
+    "overview", "ten"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Ten Cluster Overview",
+  "uid": "tenoverview",
+  "version": 6
+}

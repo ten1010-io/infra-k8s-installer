@@ -1,0 +1,18 @@
+
+prometheus:
+  url: http://promstack-ops-kube-prometh-prometheus.promstack.svc
+  port: 9090
+
+image:
+  pullPolicy: Never
+
+rules:
+  default: false
+  custom:
+    - seriesQuery: 'request_total{direction = "inbound"}'
+      resources:
+        template: "<<.Resource>>"
+      name:
+        as: "rps"
+      metricsQuery: |
+        sum(rate(<<.Series>>{<<.LabelMatchers>>, target_port != "4191"}[1m])) by (<<.GroupBy>>) / sum(kube_deployment_status_replicas_available{<<.LabelMatchers>>}) by (<<.GroupBy>>)

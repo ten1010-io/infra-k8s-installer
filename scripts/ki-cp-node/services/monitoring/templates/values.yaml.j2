@@ -1,0 +1,2877 @@
+# =============================================================================
+# Storage Strategy — 설치 시 이 블록만 수정하세요
+# =============================================================================
+#
+# type: 전체 컴포넌트에 적용되는 스토리지 방식
+#   "dynamic" - StorageClass 기반 자동 프로비저닝
+#   "static"  - 직접 PV를 생성 (local 또는 nfs)
+#
+# dynamic.storageClassName: dynamic 방식 사용 시 StorageClass 이름
+#
+# static.type: static 방식 사용 시 볼륨 종류
+#   "local" - 노드 로컬 디스크
+#   "nfs"   - NFS 서버
+#
+# static.nfs.server: nfs 방식 사용 시 NFS 서버 주소
+#
+# =============================================================================
+# Cluster Nodes — 설치 시 이 블록만 수정하세요
+# =============================================================================
+#
+# static+local 스토리지 사용 시 각 PV의 nodeAffinity에 적용됩니다.
+# cp1부터 순서대로 컴포넌트 배열 항목과 1:1 매칭됩니다.
+#
+_nodes:
+{% for node in aipub_cp_nodes %}
+  - &cp{{ loop.index }} "{{ node }}"
+{% endfor %}
+
+# =============================================================================
+# Scale — 설치 시 이 블록만 수정하세요
+# =============================================================================
+#
+# cpNodeCount             : cp 노드 수. _nodes 배열 길이와 일치해야 합니다.
+#                           elasticsearch / alertmanager / linkerd에 공통 적용됩니다.
+# victoriaMetricsReleaseCount: vmsingle a/b 인스턴스 수. HA 시 2, 단일 시 1.
+#                             static+local일 때 local 배열 항목 수와 일치해야 합니다.
+#
+_scale:
+  cpNodeCount: &cp_node_count {{ aipub_cp_nodes | length }}
+  victoriaMetricsReleaseCount: &victoria_metrics_release_count {{ monitoring_victoria_metrics_release_count }}
+
+_storageType: &_storage_type "{{ monitoring_storage_type }}"            # "static" 또는 "dynamic"
+_storageStaticType: &_storage_static_type "{{ monitoring_storage_static_type }}" # "local" 또는 "nfs" (static 시에만 사용)
+_storageClassName: &_storage_class_name "{{ monitoring_storage_class_name }}"
+_nfsServer: &_nfs_server "{{ monitoring_nfs_server }}"
+
+
+# =============================================================================
+# Monitoring Infrastructure Values
+# =============================================================================
+imageRegistry: &image_registry "{{ monitoring_image_registry }}"
+
+infra:
+  aipub_monitoring_tool_version: &aipub_monitoring_tool_version "v0.1.4"
+  
+  aipub:
+    namespace: &aipub_namespace "aipub"
+
+  linkerd:
+    namespace: "aipub-linkerd"
+    controllerReplicas: *cp_node_count  # Linkerd control plane 레플리카 수 (컨트롤 플레인 노드 개수에 맞게 조정)
+
+  efkStack:
+    namespace: &efk_namespace "aipub-efk"
+
+    elasticsearch:
+      replicas: *cp_node_count
+      minimumMasterNodes: &elasticsearch_minimum_master_nodes 2
+      roleName: "aipub_role"
+      logRetention: &elasticsearch_log_retention_days 180d  # Log retention period for kube-log-* and kube-event-* indices
+      storageProvisioning:
+        size: &elasticsearch_storage_size "3Ti"
+        type: *_storage_type            # Options: "static" or "dynamic"
+        dynamic:
+          storageClassName: *_storage_class_name
+        static:
+          type: *_storage_static_type  # Options: "local" or "nfs"
+          local:
+            - path: "/aipub/pv/elasticsearch/es_data"
+              nodeSelector:
+                kubernetes.io/hostname: *cp1
+            - path: "/aipub/pv/elasticsearch/es_data"
+              nodeSelector:
+                kubernetes.io/hostname: *cp2
+            - path: "/aipub/pv/elasticsearch/es_data"
+              nodeSelector:
+                kubernetes.io/hostname: *cp3
+          nfs:
+            - server: *_nfs_server
+              export: "/exports/aipub/elasticsearch"
+              subPath: "/es_data1"
+            - server: *_nfs_server
+              export: "/exports/aipub/elasticsearch"
+              subPath: "/es_data2"
+            - server: *_nfs_server
+              export: "/exports/aipub/elasticsearch"
+              subPath: "/es_data3"
+      clusterHealthCheckParams: &elasticsearch_cluster_health_check_params "wait_for_status=yellow&timeout=10s"
+
+    kibana:
+      auth:
+        method: sso-gateway  # Options: "oidc" or "sso-gateway"
+        ssoGateway:
+          # [! caution] "basePath" must be removed if the auth method is "oidc".
+          basePath: &kibana_base_path "/kibana"
+          # [! caution] "healthCheckPath" must be removed if the auth method is "oidc".
+          healthCheckPath: &kibana_health_check_path "/kibana/api/status"
+        oidc:
+          admin: &kibana_admin_domain "kibana-admin.cluster3.idc1.ten1010.io"
+          user: &kibana_user_domain "kibana-user.cluster3.idc1.ten1010.io"
+      # "server.basePath", "server.rewriteBasePath" are used for the sso-gateway auth method only.
+      # "server.basePath", "server.rewriteBasePath" must be removed if the auth method is "oidc".
+      kibanaConfig: &kibana_config
+        kibana.yml: |
+          server.basePath: /kibana
+          server.rewriteBasePath: true
+          server.ssl.enabled: true
+          server.ssl.certificate: /usr/share/kibana/config/certs/tls.crt
+          server.ssl.key: /usr/share/kibana/config/certs/tls.key
+          xpack.security.sameSiteCookies: "None"
+          xpack.security.authc.providers:
+            basic.basic1:
+              order: 0
+            anonymous.anonymous1:
+              order: 1
+              credentials:
+                username: "aipub"
+                password: "aipub1@"
+
+  kubePrometheusStack:
+    commonLabels: &common_labels
+      aipub.prometheus/select: "true"
+  victoriaMetricsStack:
+    namespace: &metrics_namespace "aipub-promstack"
+    fullnameOverride: &metrics_fullname_override "aipub-promstack"
+    alertManager:
+      replicas: *cp_node_count  #alertmanger support HA modes when replicas is greater than 1
+    storageProvisioning:
+      type: *_storage_type            # Options: "static" or "dynamic"
+      accessMode: &metrics_storage_access_mode "ReadWriteMany"
+      dynamic:
+        storageClassName: *_storage_class_name
+      static:
+        type: *_storage_static_type  # Options: "local" or "nfs"
+        local:
+          # Add a number of items equal to the replicas count
+          - path: "/aipub/pv/promstack/vm_data1"
+            nodeSelector:
+              kubernetes.io/hostname: *cp1
+          - path: "/aipub/pv/promstack/vm_data2"
+            nodeSelector:
+              kubernetes.io/hostname: *cp2
+        nfs:
+          # Add a number of items equal to the replicas count
+          - server: *_nfs_server
+            export: "/exports/aipub/promstack"
+            subPath: "vm_data1"
+          - server: *_nfs_server
+            export: "/exports/aipub/promstack"
+            subPath: "vm_data2"
+    # Common scrape/collection intervals for exporters and collectors.
+    # node-info-exporter is managed separately below.
+    commonExporterIntervalPrometheus: &common_exporter_interval 15s
+    commonExporterIntervalSeconds: &common_exporter_interval_seconds 15
+    commonExporterIntervalMilliseconds: &common_exporter_interval_milliseconds "15000"
+    nodeInfoExporterScrapeInterval: &node_info_exporter_scrape_interval 300s
+    vmsingle:
+      storageSize: &metrics_storage_size "1Ti"
+      retentionPeriod: &metrics_retention_period "180d"
+      replicaCount: &metrics_server_replicas 1
+      releaseCount: *victoria_metrics_release_count  # Number of vmsingle releases installed (a/b)
+      createClaims: false  # Pre-create PVCs bound to PVs for each release
+      existingClaimPrefix: "aipub-vmstack-vmsingle-pvc"
+      port: &metrics_server_port "8428"
+    endpoints:
+      metricsServerUrl: &metrics_server_url "http://vmauth-vmstack-vmauth.aipub-promstack.svc"
+      metricsServerUrlWithPort: &metrics_server_url_with_port "http://vmauth-vmstack-vmauth.aipub-promstack.svc:8427"
+      metricsServerWriteUrl: &metrics_server_write_url "http://vmagent-vmstack-vmagent.aipub-promstack.svc:8429/api/v1/write"
+      metricsServiceName: &metrics_service_name "vmauth-vmstack-vmauth"
+      metricsServicePort: &metrics_service_port "8427"
+      vmsingleUrlsWithPort: &vm_stack_vmsingle_urls_with_port
+        - "http://victoria-metrics-single-a-server.aipub-promstack.svc:8428"
+        - "http://victoria-metrics-single-b-server.aipub-promstack.svc:8428"
+      vmsingleObjects: &vm_stack_vmsingle_objects
+        - url: "http://victoria-metrics-single-a-server.aipub-promstack.svc:8428/api/v1/write"
+        - url: "http://victoria-metrics-single-b-server.aipub-promstack.svc:8428/api/v1/write"
+
+  exporters:
+    nodeInfoExporter:
+      enabled: false
+      configMap:
+        name: mig-supported-gpus
+        migSupportedGpus: &node_info_exporter_configMap_migSupportedGpus
+          GB200:
+            max_number_of_instances: 7
+          B200:
+            max_number_of_instances: 7
+          H200:
+            max_number_of_instances: 7
+          H100:
+            max_number_of_instances: 7
+          A100:
+            max_number_of_instances: 7
+          A30:
+            max_number_of_instances: 4
+    aipubCrdExporter:
+      enabled: false
+
+# =============================================================================
+# Monitoring Applications Values
+# =============================================================================
+apps:
+  aipubNoticeBoardApi:
+    replicas: &aipub_notice_board_api_replicas 1
+    affinity: &aipub_notice_board_api_affinity
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+    storageProvisioning:
+      size: &aipub_notice_board_api_storage_size "20Gi"
+      type: *_storage_type  # Options: "static" or "dynamic"
+      accessMode: &aipub_notice_board_api_storage_access_mode "ReadWriteMany"  # ReadWriteOnce or ReadWriteMany
+      static:
+        type: *_storage_static_type  # Options: "local" or "nfs"
+        local: &aipub_notice_board_api_storage_local
+          path: "/aipub/pv/aipub-notice-board-api/staticfiles"  # host path in the node
+          nodeSelector:
+            - kubernetes.io/hostname: *cp1
+        nfs: &aipub_notice_board_api_storage_nfs
+          server: *_nfs_server
+          export: "/exports/aipub/aipub-notice-board-api"
+          subPath: "staticfiles1"
+      dynamic:
+        storageClassName: *_storage_class_name
+
+  aipubClusterOverviewApi:
+    replicas: &aipub_cluster_overview_api_replicas 1
+    service:
+      port: &aipub_cluster_overview_api_service_port 8008
+      targetPort: 8000
+    affinity: &aipub_cluster_overview_api_affinity
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: Exists
+
+  aipubReport:
+    ingress:
+      enabled: &aipub_report_ingress_enabled false
+      className: &aipub_report_ingress_class_name "lb1"
+      host: &aipub_report_ingress_host "report.cluster5.idc1.ten1010.io"
+    storageProvisioning:
+      size: &aipub_report_storage_size "5Gi"
+      type: *_storage_type  # Options: "static" or "dynamic"
+      accessMode: &aipub_report_persistence_access_mode "ReadWriteOnce"  # ReadWriteOnce or ReadWriteMany
+      existingClaim: &aipub_report_existing_claim "aipub-report-cache"
+      dynamic:
+        storageClassName: *_storage_class_name
+      static:
+        type: *_storage_static_type  # Options: "local" or "nfs"
+        local: &aipub_report_storage_local
+          path: "/aipub/pv/aipub-report/cache"  # host path in the node
+          nodeSelector:
+            - kubernetes.io/hostname: *cp1
+        nfs: &aipub_report_storage_nfs
+          server: *_nfs_server
+          export: "/exports/aipub/aipub-report"
+          subPath: "cache1"
+
+  aipubMonitoring:
+    basePath: &aipub_monitoring_base_path "/streamlit"
+    resources: &aipub_monitoring_resources
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+
+keycloak:
+  enabled: false
+
+# =============================================================================
+# Images
+# =============================================================================
+images:
+  linkerd:
+    controllerImage: "monitoring/linkerd-controller"
+    proxy: "monitoring/linkerd-proxy"
+    proxyInit: "monitoring/linkerd-proxy-init"
+    policyController: "monitoring/linkerd-policy-controller"
+
+  elasticsearch:
+    imageRegistry: *image_registry
+    image: &elasticsearch_image "monitoring/elasticsearch-with-nori"
+    imageTag: &elasticsearch_image_tag "8.15.3"
+
+  kibana:
+    imageRegistry: *image_registry
+    image: &kibana_image "monitoring/kibana"
+    imageTag: &kibana_image_tag "8.15.3"
+
+  kibanaPostInstallJob:
+    registry: *image_registry
+    repository: &kibana_postinstall_job_repository "monitoring/kibana-postinstall-job"
+    imagePullPolicy: &kibana_postinstall_job_image_pull_policy "IfNotPresent"
+
+  persistentLinkerdExporter:
+    registry: *image_registry
+    repository: &persistent_linkerd_exporter_repository "monitoring/persistent-linkerd-exporter"
+    tag: &persistent_linkerd_exporter_tag "v0.1.7"
+    imagePullPolicy: &persistent_linkerd_exporter_image_pull_policy "IfNotPresent"
+
+  promInfraAlerter:
+    registry: *image_registry
+    repository: &prom_infra_alerter_repository "monitoring/prom-infra-alerter"
+    imagePullPolicy: &prom_infra_alerter_image_pull_policy "IfNotPresent"
+
+  gpuPodExporter:
+    registry: *image_registry
+    repository: &gpu_pod_exporter_repository "monitoring/gpu-pod-exporter"
+    tag: &gpu_pod_exporter_tag "v0.1.5"
+    imagePullPolicy: &gpu_pod_exporter_image_pull_policy "IfNotPresent"
+  
+  promOperator:
+    image:
+      registry: *image_registry
+      repository: &prom_operator_image_repository "monitoring/prometheus-operator"
+      # if not set appVersion field from Chart.yaml is used
+      tag: &prom_operator_image_tag "v0.76.1"
+      sha: &prom_operator_image_sha ""
+      pullPolicy: &prom_operator_image_pull_policy "IfNotPresent"   
+
+  promOperatorAdmissionJob:
+    image:
+      registry: *image_registry
+      repository: &prom_operator_admission_job_image_repository "monitoring/kube-webhook-certgen"
+      tag: &prom_operator_admission_job_image_tag "v20221220-controller-v1.5.1-58-g787ea74b6"
+      pullPolicy: &prom_operator_admission_job_image_pull_policy "IfNotPresent"
+
+  configReloader:
+    image:
+      registry: *image_registry
+      repository: &config_reloader_image_repository "monitoring/prometheus-config-reloader"
+      # if not set appVersion field from Chart.yaml is used
+      tag: &config_reloader_image_tag "v0.76.1"
+      sha: &config_reloader_image_sha ""
+
+  alertManager:
+    registry: *image_registry
+    repository: &alert_manager_image_repository "monitoring/alertmanager"
+    tag: &alert_manager_image_tag "v0.27.0" 
+    sha: &alert_manager_image_sha ""
+
+  victoriaMetricsOperator:
+    registry: *image_registry
+    repository: &vm_operator_image_repository "monitoring/victoriametrics-operator"
+    tag: &vm_operator_image_tag "v0.66.1"
+    pullPolicy: &vm_operator_image_pull_policy "IfNotPresent"
+  
+  victoriaMetricsOperatorConfigReloader:
+    registry: *image_registry
+    repository: &vmo_config_reloader_image_repository "monitoring/victoriametrics-operator"
+    tag: &vmo_config_reloader_image_tag "config-reloader-v0.66.1"
+    pullPolicy: &vmo_config_reloader_image_pull_policy "IfNotPresent"
+
+  victoriaMetrics:
+    registry: *image_registry
+    repository: &vm_image_repository "monitoring/victoria-metrics"
+    tag: &vm_image_tag "v1.132.0"
+    pullPolicy: &vm_image_pull_policy "IfNotPresent"
+
+  vmAlert:
+    registry: *image_registry
+    repository: &vmalert_image_repository "monitoring/vmalert"
+    tag: &vmalert_image_tag "v1.132.0"
+    pullPolicy: &vmalert_image_pull_policy "IfNotPresent"
+
+  vmAgent:
+    registry: *image_registry
+    repository: &vmagent_image_repository "monitoring/vmagent"
+    tag: &vmagent_image_tag "v1.132.0"
+    pullPolicy: &vmagent_image_pull_policy "IfNotPresent"
+
+  vmAuth:
+    registry: *image_registry
+    repository: &vmauth_image_repository "monitoring/vmauth"
+    tag: &vmauth_image_tag "v1.132.0"
+    pullPolicy: &vmauth_image_pull_policy "IfNotPresent"
+
+  kubeStateMetrics:
+    registry: *image_registry
+    repository: &kube_state_metrics_image_repository "monitoring/kube-state-metrics"
+    # If unset use v + .Charts.appVersion
+    tag: &kube_state_metrics_image_tag "v2.13.0"
+    sha: &kube_state_metrics_image_sha ""
+    pullPolicy: &kube_state_metrics_image_pull_policy "IfNotPresent"
+
+  nodeExporter:
+    registry: *image_registry
+    repository: &node_exporter_image_repository "monitoring/node-exporter"
+    # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+    tag: &node_exporter_image_tag "v1.8.2"
+    pullPolicy: &node_exporter_image_pull_policy "IfNotPresent"
+    digest: &node_exporter_image_digest ""
+
+  promPushgateway:
+    registry: *image_registry
+    repository: &prom_pushgateway_image_repository "monitoring/pushgateway"
+    # if not set appVersion field from Chart.yaml is used
+    tag: &prom_pushgateway_image_tag "v1.9.0"
+    pullPolicy: &prom_pushgateway_image_pull_policy "IfNotPresent"
+
+  promAdapter:
+    registry: *image_registry
+    repository: &prom_adapter_image_repository "monitoring/prometheus-adapter"
+    # if not set appVersion field from Chart.yaml is used
+    tag: &prom_adapter_image_tag "v0.12.0"
+    pullPolicy: &prom_adapter_image_pull_policy "IfNotPresent"
+
+  metricServer:
+    registry: *image_registry
+    repository: &metric_server_image_repository "monitoring/metrics-server"
+    tag: &metric_server_image_tag "v0.7.1"
+    imagePullPolicy: &metric_server_image_pull_policy "IfNotPresent"
+
+  k8sEphemeralStorageMetrics:
+    registry: *image_registry
+    repository: &k8s_ephemeral_storage_metrics_image_repository "monitoring/k8s-ephemeral-storage-metrics"
+    tag: &k8s_ephemeral_storage_metrics_image_tag "1.17.0"
+    imagePullPolicy: &k8s_ephemeral_storage_metrics_image_pull_policy "IfNotPresent"
+
+  dcgmExporter:
+    registry: *image_registry
+    repository: &dcgm_exporter_image_repository "monitoring/dcgm-exporter"
+    tag: &dcgm_exporter_image_tag "4.5.2-4.8.1-ubuntu22.04"
+    pullPolicy: &dcgm_exporter_image_pull_policy "IfNotPresent"
+
+  ipmiExporter:
+    registry: *image_registry
+    repository: &ipmi_exporter_image_repository "monitoring/ipmi-exporter"
+    tag: &ipmi_exporter_image_tag "v1.10.0"
+    pullPolicy: &ipmi_exporter_image_pull_policy "IfNotPresent"
+
+  aipubReport:
+    registry: *image_registry
+    repository: &aipub_report_image_repository "monitoring/aipub-report"
+    tag: &aipub_report_image_tag "v0.1.7"
+    pullPolicy: &aipub_report_image_pull_policy "IfNotPresent"
+
+  aipubMonitoring:
+    registry: *image_registry
+    repository: &aipub_monitoring_image_repository "monitoring/aipub-monitoring"
+    tag: &aipub_monitoring_image_tag "20260312"
+    pullPolicy: &aipub_monitoring_image_pull_policy "IfNotPresent"
+
+  nodeInfoExporter:
+    registry: *image_registry
+    repository: &node_info_exporter_image_repository "monitoring/node-info-exporter"
+    tag: &node_info_exporter_image_tag "0.1.0-cuda12.2.0"
+    pullPolicy: &node_info_exporter_image_pull_policy "IfNotPresent"
+
+  aipubCrdExporter:
+    registry: *image_registry
+    repository: &aipub_crd_exporter_image_repository "monitoring/aipub-crd-exporter"
+    tag: &aipub_crd_exporter_image_tag "0.1.2"
+    pullPolicy: &aipub_crd_exporter_image_pull_policy "IfNotPresent"
+
+  aipubNoticeBoardApi:
+    registry: *image_registry
+    repository: &aipub_notice_board_api_image_repository "monitoring/aipub-notice-board-api"
+    tag: &aipub_notice_board_api_image_tag "0.1.2"
+    pullPolicy: &aipub_notice_board_api_image_pull_policy "IfNotPresent"
+
+  aipubClusterOverviewApi:
+    registry: *image_registry
+    repository: &aipub_cluster_overview_api_image_repository "monitoring/aipub-cluster-overview-api"
+    tag: &aipub_cluster_overview_api_image_tag "0.1.3"
+    pullPolicy: &aipub_cluster_overview_api_image_pull_policy "IfNotPresent"
+
+  busybox:
+    registry: *image_registry
+    repository: &busybox_image_repository "monitoring/busybox"
+    tag: &busybox_image_tag "1.31.1"
+    pullPolicy: &busybox_image_pull_policy "IfNotPresent"
+
+  alpineGit:
+    registry: *image_registry
+    repository: &alpine_git_image_repository "monitoring/alpine-git"
+    tag: &alpine_git_image_tag "2.43.0"
+    pullPolicy: &alpine_git_image_pull_policy "IfNotPresent"
+# =============================================================================
+# Sub-chart value mappings
+# =============================================================================
+elasticsearch:
+  enabled: false
+  clusterName: "elasticsearch"
+  nodeGroup: "master"
+  nameOverride: ""
+  fullnameOverride: ""
+  imageRegistry: *image_registry
+  image: *elasticsearch_image
+  imageTag: *elasticsearch_image_tag
+  imagePullPolicy: "IfNotPresent"
+  replicas: *cp_node_count
+  minimumMasterNodes: *elasticsearch_minimum_master_nodes
+  secret:
+    password: ""  # generated randomly if not defined
+  volumeClaimTemplate:
+    accessModes: ["ReadWriteOnce"]
+    storageClassName: *_storage_class_name
+    resources:
+      requests:
+        storage: *elasticsearch_storage_size
+  clusterHealthCheckParams: *elasticsearch_cluster_health_check_params
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+  tests:
+    enabled: true
+  # DESCRIPTION
+  #   if you want to use a persistent volume claim for the backup, uncomment the following lines
+  # USAGE
+  #   1. create a persistent volume claim
+  #   2. update the values.yaml file
+  #   3. run the install.sh script
+  #   4. check if exists /backup directory
+  #   5. if exists, create a repository and snapshot
+  #   6. uninstall the elasticsearch
+  #   7. install the elasticsearch again
+  #   8. check if the backup is working
+  # extraVolumes:
+  #   - name: backup
+  #     persistentVolumeClaim:
+  #       claimName: es-backup-pvc
+  # extraVolumeMounts:
+  #   - name: backup
+  #     mountPath: /backup
+  # extraEnvs:
+  #   - name: path.repo
+  #     value: "/backup"
+
+kibana:
+  enabled: false
+  imageRegistry: *image_registry
+  image: *kibana_image
+  imageTag: *kibana_image_tag
+  imagePullPolicy: "IfNotPresent"
+  protocol: "https"
+  healthCheckPath: *kibana_health_check_path
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  # affinity:
+  #   <<: *kibana_affinity
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: node-role.kubernetes.io/control-plane
+  #           operator: Exists
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+  kibanaConfig:
+    <<: *kibana_config
+
+fluent-bit:
+  enabled: false
+  image:
+    registry: *image_registry
+    repository: monitoring/fluent-bit
+    pullPolicy: IfNotPresent
+  securityContext:
+    runAsUser: 0
+  podSecurityContext:
+    fsGroup: 0
+  tolerations: 
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  env:
+    - name: ES_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: username
+    - name: ES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+  extraVolumes:
+    - name: elasticsearch-certs
+      secret:
+        secretName: elasticsearch-master-certs
+        defaultMode: 0755
+    - name: runlogjournal
+      hostPath:
+        path: /run/log/journal
+        type: DirectoryOrCreate
+  extraVolumeMounts:
+    - name: elasticsearch-certs
+      mountPath: /etc/fluent/certs
+      readOnly: true
+    - name: runlogjournal
+      mountPath: /run/log/journal
+      readOnly: true
+  config:
+    inputs: |
+      [INPUT]
+          Name tail
+          Path /var/log/containers/*.log
+          multiline.parser docker, cri
+          Tag kube.*
+          Mem_Buf_Limit 64MB
+          Skip_Long_Lines On
+          Ignore_Older 1m
+      [INPUT]
+          Name systemd
+          Tag sysd.*
+          Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+          Systemd_Filter _SYSTEMD_UNIT=containerd.service
+          Read_From_Tail On
+    filters: |
+      [FILTER]
+          Name kubernetes
+          Match kube.*
+          Merge_Log Off
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude On
+          Labels Off
+          Annotations Off
+    outputs: |
+      [OUTPUT]
+          Name es
+          Match kube.*
+          Host elasticsearch-master
+          Port 9200
+          Retry_Limit 5
+          Index kube-log
+          Logstash_Format On
+          Logstash_Prefix kube-log
+          HTTP_User ${ES_USERNAME}
+          HTTP_Passwd ${ES_PASSWORD}
+          TLS             On
+          TLS.Verify      On
+          TLS.CA_File     /etc/fluent/certs/ca.crt
+          Trace_Error On
+          Suppress_Type_Name On
+          Path  /_bulk?filter_path=errors,items.*.error
+      [OUTPUT]
+          Name es
+          Match sysd.*
+          Host elasticsearch-master
+          Port 9200
+          Retry_Limit 5
+          Index sysd-log
+          Logstash_Format On
+          Logstash_Prefix sysd-log
+          HTTP_User ${ES_USERNAME}
+          HTTP_Passwd ${ES_PASSWORD}
+          TLS             On
+          TLS.Verify      On
+          TLS.CA_File     /etc/fluent/certs/ca.crt
+          Trace_Error On
+          Suppress_Type_Name On
+          Path  /_bulk?filter_path=errors,items.*.error
+  testFramework:
+    enabled: true
+    image:
+      registry: *image_registry
+      repository: *busybox_image_repository
+      tag: *busybox_image_tag
+      pullPolicy: *busybox_image_pull_policy
+
+fluent-bit-event:
+  enabled: false
+  kind: Deployment
+  image:
+    registry: *image_registry
+    repository: monitoring/fluent-bit
+    pullPolicy: IfNotPresent
+  rbac:
+    eventsAccess: true
+  env:
+    - name: ES_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: username
+    - name: ES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+  # affinity:
+  #   <<: *fluent-bit-event_affinity
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: node-role.kubernetes.io/control-plane
+  #           operator: Exists
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+  extraVolumes:
+    - name: elasticsearch-certs
+      secret:
+        secretName: elasticsearch-master-certs
+        defaultMode: 0755
+  extraVolumeMounts:
+    - name: elasticsearch-certs
+      mountPath: /etc/fluent/certs
+      readOnly: true
+  config:
+    inputs: |
+      [INPUT]
+          Name kubernetes_events
+          Tag k8s_events.*
+          kube_url https://kubernetes.default.svc
+    filters: |
+    outputs: |
+      [OUTPUT]
+          Name es
+          Match k8s_events.*
+          Host elasticsearch-master
+          Port 9200
+          Retry_Limit 5
+          Index kube-event
+          Logstash_Format On
+          Logstash_Prefix kube-event
+          HTTP_User ${ES_USERNAME}
+          HTTP_Passwd ${ES_PASSWORD}
+          TLS             On
+          TLS.Verify      On
+          TLS.CA_File     /etc/fluent/certs/ca.crt
+          Trace_Error On
+          Suppress_Type_Name On
+          Replace_Dots On
+          ID_key $metadata['uid']
+          Generate_ID Off
+          Write_Operation upsert
+          Time_Key @timestamp
+          # Time_Key_Format %Y-%m-%dT%H:%M:%S.%L  # Deleted at the request of Yeo Sang-ho (September 11, 2025)
+          Time_Key_Nanos On
+  testFramework:
+    enabled: true
+    image:
+      registry: *image_registry
+      repository: *busybox_image_repository
+      tag: *busybox_image_tag
+      pullPolicy: *busybox_image_pull_policy
+
+keycloak-client-job:
+  enabled: false
+
+node-info-exporter:
+  enabled: false
+  image:
+    registry: *image_registry
+    repository: *node_info_exporter_image_repository
+    tag: *node_info_exporter_image_tag
+    pullPolicy: *node_info_exporter_image_pull_policy
+  service:
+    type: ClusterIP
+    port: 32323
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceMonitor:
+    release: kube-prometheus-stack
+    interval: *node_info_exporter_scrape_interval
+    telemetryPath: /metrics
+    timeout: 10s
+    labels:
+      <<: *common_labels
+  app:
+    duration: "3600"
+  configMap:
+    name: mig-supported-gpus
+    migSupportedGpus:
+      <<: *node_info_exporter_configMap_migSupportedGpus
+
+aipub-crd-exporter:
+  enabled: false
+  image:
+    registry: *image_registry
+    repository: *aipub_crd_exporter_image_repository
+    tag: *aipub_crd_exporter_image_tag
+    pullPolicy: *aipub_crd_exporter_image_pull_policy
+  service:
+    port: 31119
+    targetPort: 8000
+  monitoring:
+    labels:
+      <<: *common_labels
+  clusterRole:
+    rules:
+      - apiGroups: ["aipub.ten1010.io"]   # 감시할 CRD의 apiGroup
+        resources: ["workspaces", "aipubjobs", "operations"]  # 감시할 CRD의 plural 이름
+        verbs: ["get", "list", "watch"]
+  # affinity:
+  #   <<: *aipub_crd_exporter_affinity
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: node-role.kubernetes.io/control-plane
+  #           operator: Exists
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+
+aipub-notice-board-api:
+  enabled: false
+  replicas: *aipub_notice_board_api_replicas
+  image:
+    registry: *image_registry
+    repository: *aipub_notice_board_api_image_repository
+    tag: *aipub_notice_board_api_image_tag
+    pullPolicy: *aipub_notice_board_api_image_pull_policy
+  preInstallJob:
+    image:
+      registry: *image_registry
+      repository: *busybox_image_repository
+      tag: *busybox_image_tag
+      pullPolicy: *busybox_image_pull_policy
+  service:
+    port: 8009
+    targetPort: 8000
+  ingress:
+    enabled: false
+    className: ""
+    hostname: ""
+    createTls:
+      enabled: false
+      certPath: ""  # Provide either certPath or certData if enabled is true.
+      certData: ""
+      keyPath: ""  # Provide either keyPath or keyData if enabled is true.
+      keyData: ""
+  storageProvisioning:
+    size: *aipub_notice_board_api_storage_size
+    type: *_storage_type  # Options: "static" or "dynamic"
+    accessMode: *aipub_notice_board_api_storage_access_mode  # ReadWriteOnce or ReadWriteMany
+    static:
+      type: *_storage_static_type  # Options: "local" or "nfs"
+      local: *aipub_notice_board_api_storage_local
+      nfs: *aipub_notice_board_api_storage_nfs
+    dynamic:
+      storageClassName: *_storage_class_name
+  # affinity:
+  #   <<: *aipub_notice_board_api_affinity
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: node-role.kubernetes.io/control-plane
+  #           operator: Exists
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists
+      key: node-role.kubernetes.io/control-plane
+    - effect: NoExecute
+      key: node.kubernetes.io/unreachable
+      operator: Exists
+      tolerationSeconds: 10
+    - effect: NoExecute
+      key: node.kubernetes.io/not-ready
+      operator: Exists
+      tolerationSeconds: 10
+  elasticsearch:
+    namespace: *efk_namespace
+    service:
+      scheme: "https"
+      name: ""
+      port: 9200
+    masterCredential: ""
+
+aipub-cluster-overview-api:
+  enabled: false
+  replicas: *aipub_cluster_overview_api_replicas
+  image:
+    registry: *image_registry
+    repository: *aipub_cluster_overview_api_image_repository
+    tag: *aipub_cluster_overview_api_image_tag
+    pullPolicy: *aipub_cluster_overview_api_image_pull_policy
+  service:
+    port: *aipub_cluster_overview_api_service_port
+    targetPort: 8000
+  ingress:
+    enabled: false
+    className: ""
+    hostname: ""
+    createTls:
+      enabled: false
+      certPath: ""  # Provide either certPath or certData if enabled is true.
+      certData: ""
+      keyPath: ""  # Provide either certPath or certData if enabled is true.
+      keyData: ""
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node.kubernetes.io/unreachable
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+    - key: node.kubernetes.io/not-ready
+      operator: Exists
+      effect: NoExecute
+      tolerationSeconds: 10
+  ignoreNamespaces:
+    - aipub
+    - aipub-efk
+    - aipub-linkerd
+    - aipub-promstack
+    - coaster
+    - ingress-nginx
+    - kube-flannel
+    - kube-system
+    - metallb
+    - network-operator
+    - project-controller
+  prometheus:
+    namespace: *metrics_namespace
+    service:
+      scheme: http
+      name: *metrics_service_name
+      port: *metrics_service_port
+    timeoutSeconds: 30
+  # Cache Warmup 설정
+  cacheWarmup:
+    # CronJob 설정 (주기적 캐시 워밍업)
+    cronjob:
+      enabled: true
+      schedule: "0 */12 * * *"  # 12시간마다 실행
+      timeZone: "Asia/Seoul"
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 1
+    # Job 설정 (Helm 배포 시 1회 실행)
+    job:
+      enabled: true
+    # 공통 설정
+    backoffLimit: 3
+    activeDeadlineSeconds: 3600
+    ttlSecondsAfterFinished: 300  # 완료 후 5분 뒤 자동 삭제
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+
+victoria-metrics-single:
+  enabled: false
+  server:
+    image:
+      registry: *image_registry
+      repository: *vm_image_repository
+      tag: *vm_image_tag
+      pullPolicy: *vm_image_pull_policy
+    replicaCount: *metrics_server_replicas
+    retentionPeriod: *metrics_retention_period
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+    persistentVolume:
+      enabled: true
+      accessModes:
+        - *metrics_storage_access_mode
+      storageClassName: *_storage_class_name
+      size: *metrics_storage_size
+      existingClaim: ""
+    resources:
+      limits:
+        cpu: 1
+        memory: 1024Mi
+      requests:
+        cpu: 1
+        memory: 1024Mi
+    extraArgs:
+      envflag.enable: true
+      envflag.prefix: VM_
+      loggerFormat: json
+      httpListenAddr: :8428
+      maxLabelsPerTimeseries: 200
+      maxLabelValueLen: 8192
+
+victoria-metrics-k8s-stack:
+  enabled: false
+  global:
+    namespaceOverride: *metrics_namespace
+  fullnameOverride: *metrics_fullname_override
+  external:
+    vm:
+      read:
+        url: ""
+      write:
+        url: ""
+  victoria-metrics-operator:
+    enabled: false
+    name: "vmstack-operator"
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+    image:
+      registry: *image_registry
+      repository: *vm_operator_image_repository
+      tag: *vm_operator_image_tag
+      pullPolicy: *vm_operator_image_pull_policy
+    configReloader:
+      image:
+        registry: *image_registry
+        repository: *vmo_config_reloader_image_repository
+        tag: *vmo_config_reloader_image_tag
+        pullPolicy: *vmo_config_reloader_image_pull_policy
+    crds:
+      plain: true
+      cleanup:
+        enabled: false
+    serviceMonitor:
+      enabled: true
+    logLevel: error
+  defaultRules:
+    create: false
+  additionalVictoriaMetricsMap:
+    aipub-rule:
+      groups:
+        - name: scheduler
+          rules:
+          - alert: scheduleStop1h
+            expr: |
+               kube_deployment_spec_replicas{namespace="coaster", deployment="scheduler"} == 0
+            for: 1h
+            labels:
+              severity: info
+              target: aipub
+            annotations:
+              summary: "schedule is stopped for 1h"
+              description: |
+                스케줄러 작동이 중지된지 1시간이 경과되었습니다.
+                스케줄러 작동을 재개해야 리소스 할당과 워크로드 생성이 가능합니다.
+        - name: aipub-master
+          rules:
+          - alert: MasterFault
+            expr: |
+               (
+                 kube_node_role{role="control-plane"}* on(node) group_right()
+                 sum by (node) (kube_node_status_condition{condition="Ready", status=~"false|unknown"})
+               ) >= 1
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "Master is dead"
+              description: |
+                ({{ $labels.node }}) 마스터노드에 장애가 발생하였습니다. 
+          - alert: HighCPUUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - avg by(nodename) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+                 ) * 100
+                ) >= 80
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High CPU usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 CPU 사용률이 80%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                CPU 리소스를 확보해주세요 
+          - alert: HighCPUUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - avg by(nodename) (rate(node_cpu_seconds_total{mode="idle"}[5m]))
+                 ) * 100
+                ) >= 90
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High CPU usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 CPU 사용률이 90%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                CPU 리소스를 확보해주세요
+          - alert: HighRAMUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+                 ) * 100
+                ) >= 80
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High RAM usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 메모리 사용률이 80%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                메모리 리소스를 확보해주세요
+          - alert: HighRAMUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+                 ) * 100
+                ) >= 90
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High RAM usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 메모리 사용률이 90%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                메모리 리소스를 확보해주세요
+          - alert: HighStorageUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+                 ) * 100
+                ) >= 60
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High Stroage usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 스토리지 사용률이 60%입니다.
+                사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                스토리지 리소스를 확보해주세요
+          - alert: HighStorageUsageMaster
+            expr: |
+               (
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 ) * on(nodename) group_right()
+                 (
+                   1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+                 ) * 100
+                ) >= 70
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High Stroage usage detected"
+              description: |
+                ({{ $labels.nodename }}) 마스터 노드의 스토리지 사용률이 70%입니다.
+                사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                스토리지 리소스를 확보해주세요                                                                          
+        - name: aipub-worker
+          rules:
+          - alert: WorkerFault
+            expr: |
+               (
+                 sum by (node) (kube_node_status_condition{condition="Ready", status=~"false|unknown"})
+                 unless on(node) 
+                   kube_node_role{role="control-plane"}
+               ) >= 1
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "Worker is dead"
+              description: |
+                ({{ $labels.node }}) 워커노드에 장애가 발생하였습니다. 
+          - alert: HighCPUUsageWorker
+            expr: |
+               (
+                 (
+                   1 - avg by(nodename) (
+                     rate(node_cpu_seconds_total{mode="idle"}[5m])
+                   )
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 80
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High CPU usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 CPU 사용률이 80%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                CPU 리소스를 확보해주세요 
+          - alert: HighCPUUsageWorker
+            expr: |
+               (
+                 (
+                   1 - avg by(nodename) (
+                     rate(node_cpu_seconds_total{mode="idle"}[5m])
+                   )
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 90
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High CPU usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 CPU 사용률이 90%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                CPU 리소스를 확보해주세요
+          - alert: HighRAMUsageWorker
+            expr: |
+               (
+                 (
+                   1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 80
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High RAM usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 메모리 사용률이 80%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                메모리 리소스를 확보해주세요 
+          - alert: HighRAMUsageWorker
+            expr: |
+               (
+                 (
+                   1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 90
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High RAM usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 메모리 사용률이 90%입니다.
+                사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                메모리 리소스를 확보해주세요              
+          - alert: HighStorageUsageWorker
+            expr: |
+               (
+                 (
+                   1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 60
+            for: 1m
+            labels:
+              severity: warning
+              target: aipub
+            annotations:
+              summary: "High Storage usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 스토리지 사용률이 60%입니다.
+                사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                스토리지 리소스를 확보해주세요 
+          - alert: HighStorageUsageWorker
+            expr: |
+               (
+                 (
+                   1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+                 ) * 100
+                 unless on(nodename) 
+                 label_replace(
+                   kube_node_role{role="control-plane"},
+                   "nodename",
+                   "$1",
+                   "node",
+                   "(.*)"
+                 )
+               ) >= 70
+            for: 1m
+            labels:
+              severity: critical
+              target: aipub
+            annotations:
+              summary: "High Storage usage detected"
+              description: |
+                ({{ $labels.nodename }}) 워커 노드의 스토리지 사용률이 70%입니다.
+                사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
+                스토리지 리소스를 확보해주세요
+        #### Prometheus Rules for fractional GPU Allocation 
+        - name: gpu.resource.rules
+          rules:
+          # Regular GPU
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_mig_.*",
+                resource!~".*_block_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1)
+            labels:
+              gpu_type: "gpu"
+     
+          # A30 MIG 1g-4g
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_1g_.*",
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/4)
+            labels:
+              gpu_type: "mig_a30_1g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_2g_.*",
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (2/4)
+            labels:
+              gpu_type: "mig_a30_2g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_3g_.*",
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (3/4)
+            labels:
+              gpu_type: "mig_a30_3g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_4g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (4/4)
+            labels:
+              gpu_type: "mig_a30_4g"
+     
+          # Regular MIG 1g-7g
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_1g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/7)
+            labels:
+              gpu_type: "mig_1g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_2g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (2/7)
+            labels:
+              gpu_type: "mig_2g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_3g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (3/7)
+            labels:
+              gpu_type: "mig_3g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_4g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (4/7)
+            labels:
+              gpu_type: "mig_4g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_5g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (5/7)
+            labels:
+              gpu_type: "mig_5g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_6g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (6/7)
+            labels:
+              gpu_type: "mig_6g"
+     
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_7g_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (7/7)
+            labels:
+              gpu_type: "mig_7g"
+     
+          # Block resources
+          - record: gpu:resource:requests
+            expr: |
+              kube_pod_container_resource_requests{
+                resource=~"ten1010_io_block_.*|ten1010_io_gpu_block_.*"
+              } * on(namespace, pod, container, uid) group_left() (kube_pod_container_status_running == 1) * (1/100)
+            labels:
+              gpu_type: "block"
+  
+          # Regular GPU
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_mig_.*",
+                resource!~".*_block_.*"
+              }
+            labels:
+              gpu_type: "gpu"
+     
+          # A30 MIG 1g-4g
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_1g_.*"
+              } * (1/4)
+            labels:
+              gpu_type: "mig_a30_1g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_2g_.*"
+              } * (2/4)
+            labels:
+              gpu_type: "mig_a30_2g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_3g_.*"
+              } * (3/4)
+            labels:
+              gpu_type: "mig_a30_3g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource=~".*_nvidia_a30_.*",
+                resource=~".*_a30_.*",
+                resource=~".*_4g_.*"
+              } * (4/4)
+            labels:
+              gpu_type: "mig_a30_4g"
+     
+          # Regular MIG 1g-7g
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_1g_.*"
+              } * (1/7)
+            labels:
+              gpu_type: "mig_1g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_2g_.*"
+              } * (2/7)
+            labels:
+              gpu_type: "mig_2g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_3g_.*"
+              } * (3/7)
+            labels:
+              gpu_type: "mig_3g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_4g_.*"
+              } * (4/7)
+            labels:
+              gpu_type: "mig_4g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_5g_.*"
+              } * (5/7)
+            labels:
+              gpu_type: "mig_5g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_6g_.*"
+              } * (6/7)
+            labels:
+              gpu_type: "mig_6g"
+     
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_gpu_.*",
+                resource!~".*_nvidia_a30_.*",
+                resource=~".*_mig_.*",
+                resource=~".*_7g_.*"
+              } * (7/7)
+            labels:
+              gpu_type: "mig_7g"
+     
+          # Block resources
+          - record: gpu:resource:node
+            expr: |
+              kube_node_status_allocatable{
+                resource=~"ten1010_io_block_.*|ten1010_io_gpu_block_.*"
+              } * (1/100)
+            labels:
+              gpu_type: "block"
+          - expr: DCGM_FI_DEV_GPU_TEMP{}
+            record: gpu:resource:gpu_temp
+          - expr: DCGM_FI_PROF_PIPE_TENSOR_ACTIVE{}
+            record: gpu:resource:tensor_core
+          - expr: DCGM_FI_PROF_DRAM_ACTIVE{}
+            record: gpu:resource:dram_active
+          - expr: DCGM_FI_DEV_POWER_USAGE{}
+            record: gpu:resource:power
+          - expr: DCGM_FI_PROF_SM_ACTIVE{}
+            record: gpu:resource:sm_active
+          - expr: DCGM_FI_DEV_GPU_UTIL{}
+            record: gpu:resource:util
+  defaultDashboards:
+    enabled: false
+  vmsingle:
+    # vmstack으로 vmsingle을 프로비저닝 하지 않음.
+    enabled: false
+  alertmanager:
+    enabled: false
+    name: "vmstack-alertmanager"
+    spec:
+      replicaCount: *cp_node_count
+      resources:
+        limits:
+          cpu: 200m
+          memory: 200Mi
+        requests:
+          cpu: 200m
+          memory: 200Mi
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      image:
+        registry: *image_registry
+        # ten1010.io registry 주소가 있는 이미지는 폐쇄망 환경에서 빌드할떄 활용하는 이미지이므로, 외부 접근이 허용된 경우에는 images 를 주석처리한다.
+        repository: *alert_manager_image_repository
+        tag: *alert_manager_image_tag
+        sha: *alert_manager_image_sha
+    config:
+      inhibit_rules:
+        - source_matchers:
+            - 'severity = critical'
+          target_matchers:
+            - 'severity =~ warning|info'
+          equal:
+            - 'alertname'
+            - 'nodename'
+        - source_matchers:
+            - 'severity = warning'
+          target_matchers:
+            - 'severity = info'
+          equal:
+            - 'alertname'
+            - 'nodename'
+      route:
+        group_by: ['alertname', 'severity', 'target', 'namespace', 'nodename', 'node']
+        group_wait: 30s
+        group_interval: 1m
+        repeat_interval: 720h # prometheus의 retention period와 동일하게 설정.
+        receiver: watchdog #이름을 NULL에서 watchdog로 변경
+        routes:
+        - receiver: watchdog #이름을 NULL에서 watchdog로 변경
+          matchers:
+            - alertname = "Watchdog"
+        - receiver: 'custom-webhook'
+          matchers:
+            - target = "aipub"
+            - alertname !~ "InfoInhibitor"   
+      receivers:
+      #이름을 NULL에서 watchdog로 변경
+      - name: watchdog
+      - name: 'custom-webhook'
+        webhook_configs:
+        #- url: 'http://192.168.2.2:23456/webhook' 
+        - url: "http://prom-infra-alerter.aipub-efk.svc.cluster.local:80/webhook"
+          send_resolved: false
+      templates:
+      - '/etc/alertmanager/config/*.tmpl'
+  vmalert:
+    enabled: false
+    name: "vmstack-vmalert"
+    remoteWriteVMAgent: true
+    spec:
+      image:
+        registry: *image_registry
+        repository: *vmalert_image_repository
+        tag: *vmalert_image_tag
+        pullPolicy: *vmalert_image_pull_policy
+      remoteRead:
+        url: *metrics_server_url_with_port
+      remoteWrite:
+        url: *metrics_server_write_url
+      datasource:
+        url: *metrics_server_url_with_port
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      notifiers:
+        - url: "http://vmalertmanager-vmstack-alertmanager.aipub-promstack:9093/"
+  vmauth:
+    enabled: false
+    name: "vmstack-vmauth"
+    spec:
+      image:
+        registry: *image_registry
+        repository: *vmauth_image_repository
+        tag: *vmauth_image_tag
+        pullPolicy: *vmauth_image_pull_policy
+      port: "8427"
+      disableSelfServiceScrape: true
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      unauthorizedUserAccessSpec:
+        # -- Flag, that allows to disable default VMAuth unauthorized user access config
+        disabled: false
+        discover_backend_ips: true
+        url_map:
+          - src_paths:
+              - /vmui/.*
+              - /graph/.*
+              - /prometheus/.*
+              - /api/v1/.*
+              - /prometheus/api/v1/.*
+            url_prefix:
+              *vm_stack_vmsingle_urls_with_port
+        load_balancing_policy: "least_loaded"
+  vmagent:
+    enabled: false
+    name: "vmstack-vmagent"
+    additionalRemoteWrites:
+      *vm_stack_vmsingle_objects
+    spec:
+      image:
+        registry: *image_registry
+        repository: *vmagent_image_repository
+        tag: *vmagent_image_tag
+        pullPolicy: *vmagent_image_pull_policy
+      scrapeInterval: *common_exporter_interval
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      resources:
+        limits:
+          cpu: 700m
+          memory: 512Mi
+        requests:
+          cpu: 700m
+          memory: 512Mi
+      disableSelfServiceScrape: true
+      inlineScrapeConfig: |
+        - job_name: 'linkerd-proxy'
+          kubernetes_sd_configs:
+          - role: pod
+          relabel_configs:
+          - source_labels:
+            - __meta_kubernetes_pod_container_name
+            - __meta_kubernetes_pod_container_port_name
+            action: keep
+            regex: ^linkerd-proxy;linkerd-admin$
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_job]
+            action: replace
+            target_label: k8s_job
+          - action: labeldrop
+            regex: __meta_kubernetes_pod_label_linkerd_io_proxy_job
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_linkerd_io_proxy_(.+)
+          - action: labeldrop
+            regex: __meta_kubernetes_pod_label_linkerd_io_proxy_(.+)
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_linkerd_io_(.+)
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+            replacement: __tmp_pod_label_$1
+          - action: labelmap
+            regex: __tmp_pod_label_linkerd_io_(.+)
+            replacement:  __tmp_pod_label_$1
+          - action: labeldrop
+            regex: __tmp_pod_label_linkerd_io_(.+)
+          - action: labelmap
+            regex: __tmp_pod_label_(.+)
+              
+        - job_name: 'linkerd'
+          kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: ['linkerd-viz']
+          relabel_configs:
+          - source_labels:
+            - __meta_kubernetes_pod_container_name
+            action: keep
+            regex: ^prometheus$
+          honor_labels: true
+          metrics_path: '/federate'
+          params:
+            'match[]':
+              - '{job="linkerd-proxy"}'
+              - '{job="linkerd-controller"}'
+      extraArgs:
+        promscrape.suppressScrapeErrors: "true"
+  grafana:
+    enabled: false
+
+  prometheus-node-exporter:
+    enabled: false
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    image:
+      registry: *image_registry
+      repository: *node_exporter_image_repository
+      # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+      tag: *node_exporter_image_tag
+      pullPolicy: *node_exporter_image_pull_policy
+      digest: *node_exporter_image_digest
+    livenessProbe:
+      failureThreshold: 3
+      httpGet:
+        httpHeaders: []
+        scheme: http
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+    
+    ## Readiness probe
+    ##
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        httpHeaders: []
+        scheme: http
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 200m
+        memory: 128Mi
+    vmScrape:
+      enabled: true
+      spec:
+        endpoints:
+        - port: metrics
+          # monitor.relabelings 이식 위치(스크레이프 전 타겟 relabel)
+          relabelConfigs:
+            # grafana 대시보드에서 노드 이름을 instance로 보이게(주의: 기존대로 유지)
+            - action: replace
+              source_labels: [__meta_kubernetes_pod_node_name]
+              target_label: instance
+            # nodename 라벨 추가 (instance 치환으로 생기는 부작용 회피용)
+            - action: replace
+              source_labels: [__meta_kubernetes_pod_node_name]
+              target_label: nodename
+          metricRelabelConfigs:
+            - action: drop
+              source_labels: [mountpoint]
+              regex: "/var/lib/kubelet/pods.+"
+    prometheus:
+      monitor:
+        enabled: false
+  kube-state-metrics:
+    enabled: false
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+      #When Specific node needs to be selected, add following line
+      #kubernetes.io/hostname: *cp1
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    image:
+      registry: *image_registry
+      repository: *kube_state_metrics_image_repository
+      # If unset use v + .Charts.appVersion
+      tag: *kube_state_metrics_image_tag
+      sha: *kube_state_metrics_image_sha
+      pullPolicy: *kube_state_metrics_image_pull_policy
+    prometheusScrape: true
+    metricAnnotationsAllowList:
+      - nodes=[*]
+    metricLabelsAllowlist:
+      - namespaces=[*]
+      - services=[*]
+      - pods=[*]
+      - deployments=[*]
+      - horizontalpodautoscalers=[*]
+      - nodes=[*]
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi      
+    prometheus:
+      monitor:
+        interval: *common_exporter_interval
+        additionalLabels:
+          <<: *common_labels
+  kubelet:
+    enabled: false
+  kubeApiServer:
+    enabled: false
+  aipub-operation-metrics:
+    enabled: false
+    service:
+      enabled: false
+      namespace: *metrics_namespace
+    vmScrape:
+      spec:
+        namespaceSelector:
+          any: true
+        selector:
+          matchLabels:
+            aipub.ten1010.io/workload-kind: Operation
+        endpoints:
+          - path: /metrics
+            targetPort: 8000
+  # 아래는 설치 안 함. 나중에 필요시 설치
+  kubeControllerManager:
+    enabled: false
+  coreDns:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+
+kube-prometheus-stack:
+  enabled: false
+  commonLabels:
+    <<: *common_labels
+  deployment:
+    prometheus:
+      enabled: false # enabled for fault recovery (prometheus with replica 1 can not be recoverd from failure due to its statefulset deployment)
+      claimName: "aipub-vm-pvc"
+    alertmanager:
+      enabled: false
+      service:
+        type: ClusterIP
+        nodePort: ""
+  crds:
+    enabled: false
+  prometheusOperator:
+    enabled: false
+    fullnameOverride: prometheus-operator
+    serviceMonitor:
+      selfMonitor: false
+    resources:
+      limits:
+        cpu: 200m
+        memory: 200Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi
+    affinity: {}
+    #  nodeAffinity:
+    #    requiredDuringSchedulingIgnoredDuringExecution:
+    #      nodeSelectorTerms:
+    #      - matchExpressions:
+    #        - key: kubernetes.io/hostname
+    #          operator: In
+    #          values:
+    #          - *cp1
+    #          - *cp2
+    #          - *cp3
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: ""
+      #When Specific node needs to be selected, add following line
+      #kubernetes.io/hostname: *cp1
+    tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+    image:
+      registry: *image_registry
+      repository: *prom_operator_image_repository
+      # if not set appVersion field from Chart.yaml is used
+      tag: *prom_operator_image_tag
+      sha: *prom_operator_image_sha
+      pullPolicy: *prom_operator_image_pull_policy
+    admissionWebhooks:
+      patch:
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        image:
+          registry: *image_registry
+          repository: *prom_operator_admission_job_image_repository
+          tag: *prom_operator_admission_job_image_tag
+          pullPolicy: *prom_operator_admission_job_image_pull_policy
+
+        affinity: {}
+        #  nodeAffinity:
+        #    requiredDuringSchedulingIgnoredDuringExecution:
+        #      nodeSelectorTerms:
+        #      - matchExpressions:
+        #        - key: kubernetes.io/hostname
+        #          operator: In
+        #          values:
+        #          - *cp1
+        #          - *cp2
+        #          - *cp3
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: ""
+          #When Specific node needs to be selected, add following line
+          #kubernetes.io/hostname: *cp1
+        tolerations: 
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"     
+    prometheusConfigReloader:
+      # ten1010.io registry 주소가 있는 이미지는 폐쇄망 환경에서 빌드할떄 활용하는 이미지이므로, 외부 접근이 허용된 경우에는 images 를 주석처리한다.
+      image:
+        registry: *image_registry
+        repository: *config_reloader_image_repository
+        # if not set appVersion field from Chart.yaml is used
+        tag: *config_reloader_image_tag
+        sha: *config_reloader_image_sha
+      resources:
+        limits:
+          cpu: 200m
+          memory: 200Mi
+        requests:
+          cpu: 200m
+          memory: 200Mi  
+  
+  prometheus:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  kube-state-metrics:
+    enabled: false
+  grafana:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  prometheus-node-exporter:
+    enabled: false
+  alertmanager:
+    enabled: false
+  defaultRules:
+    create: false
+  kubernetesServiceMonitors:
+    enabled: false
+
+prometheus-pushgateway:
+  enabled: false
+  namespaceOverride: *metrics_namespace #kube-prometheus-stack이 배포된 네임스페이스와 동일하게 설정!!
+  serviceMonitor:
+    enabled: true
+    namespace: *metrics_namespace # kube-prometheus-stack이 배포된 네임스페이스와 동일하게 설정.
+    additionalLabels:
+      <<: *common_labels
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi  
+  image:
+    registry: *image_registry
+    repository: *prom_pushgateway_image_repository
+    # if not set appVersion field from Chart.yaml is used
+    tag: *prom_pushgateway_image_tag
+    pullPolicy: *prom_pushgateway_image_pull_policy
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: kubernetes.io/hostname
+  #          operator: In
+  #          values:
+  #          - *cp1
+  #          - *cp2
+  #          - *cp3  
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+prom-infra-alerter:
+  enabled: false
+  replicas: *cp_node_count
+  tlsVerify: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 120Mi
+    limits:
+      cpu: 100m
+      memory: 120Mi  
+  elasticCredentialSecretName: elasticsearch-master-credentials
+  image:
+    registry: *image_registry
+    repository: *prom_infra_alerter_repository
+    tag: *aipub_monitoring_tool_version
+    imagePullPolicy: *prom_infra_alerter_image_pull_policy
+  
+  elasticUrl: https://elasticsearch-master.efk.svc.cluster.local:9200
+
+  affinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: kubernetes.io/hostname
+  #        operator: In
+  #        values:
+  #        - *cp1
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+    
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"  
+
+persistent-linkerd-exporter:
+  enabled: false
+  resources:
+    requests:
+      cpu: 200m
+      memory: 250Mi
+    limits:
+      cpu: 200m
+      memory: 250Mi  
+  image:
+    registry: *image_registry
+    repository: *persistent_linkerd_exporter_repository
+    tag: *persistent_linkerd_exporter_tag
+    imagePullPolicy: *persistent_linkerd_exporter_image_pull_policy
+  initContainer:
+    image:
+      registry: *image_registry
+      repository: *alpine_git_image_repository
+      tag: *alpine_git_image_tag
+      pullPolicy: *alpine_git_image_pull_policy
+  metric_export_mode: "PUSHGATEWAY"
+  scrape_interval: *common_exporter_interval_seconds
+  pushgateway_uri: "http://pushgateway-prometheus-pushgateway.promstack.svc:9091"
+  prometheus_uri: *metrics_server_url_with_port
+
+  affinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: kubernetes.io/hostname
+  #        operator: In
+  #        values:
+  #        - *cp1
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+
+  podMonitor:
+    additionalLabels:
+      <<: *common_labels
+
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+
+prometheus-adapter:
+  enabled: false
+  namespaceOverride: *metrics_namespace # vm stack 네임스페이스
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 100m
+      memory: 200Mi  
+  prometheus:
+    url: *metrics_server_url # VM (via vmauth)
+    port: "8427" # VM (via vmauth)
+  image:
+    registry: *image_registry
+    repository: *prom_adapter_image_repository
+    # if not set appVersion field from Chart.yaml is used
+    tag: *prom_adapter_image_tag
+    pullPolicy: *prom_adapter_image_pull_policy
+
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: kubernetes.io/hostname
+  #          operator: In
+  #          values:
+  #          - *cp1
+  #          - *cp2
+  #          - *cp3  
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  rules:
+    default: false
+    custom:
+      - seriesQuery: 'request_total{direction = "inbound"}'
+        resources:
+          template: "<<.Resource>>"
+        name:
+          as: "rps"
+        metricsQuery: |
+          sum(rate(<<.Series>>{<<.LabelMatchers>>, target_port != "4191"}[1m])) by (<<.GroupBy>>) / sum(kube_deployment_status_replicas_available{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+
+metric-server:
+  enabled: false
+  tlsVerify: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 150Mi
+    limits:
+      cpu: 100m
+      memory: 150Mi  
+  image:
+    registry: *image_registry
+    repository: *metric_server_image_repository
+    tag: *metric_server_image_tag
+    imagePullPolicy: *metric_server_image_pull_policy
+
+  affinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: kubernetes.io/hostname
+  #        operator: In
+  #        values:
+  #        - *cp1
+
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+  
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists" 
+
+kibana-postinstall-job:
+  enabled: false
+  tlsVerify: false
+  resources:
+    requests:
+      cpu: 100m
+      memory: 120Mi
+    limits:
+      cpu: 100m
+      memory: 120Mi  
+  elasticCredentialSecretName: elasticsearch-master-credentials
+  kibanaDashboardConfigmapName: kibana-dashboard-ids
+  k8sConfigPath: ""
+  image:
+    registry: *image_registry
+    repository: *kibana_postinstall_job_repository
+    tag: *aipub_monitoring_tool_version
+    imagePullPolicy: *kibana_postinstall_job_image_pull_policy
+
+  kibanaHost: https://kibana-kibana.efk.svc.cluster.local:5601/
+
+  affinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: kubernetes.io/hostname
+  #        operator: In
+  #        values:
+  #        - *cp1  
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+
+gpu-pod-exporter:
+  enabled: false
+  log_level: WARN
+  env:
+    COLLECTION_INTERVAL: *common_exporter_interval_seconds
+    CRICTL_COLLECTION_INTERVAL: *common_exporter_interval_seconds
+    NVML_COLLECTION_INTERVAL: *common_exporter_interval_seconds
+    MIG_COLLECTION_INTERVAL: *common_exporter_interval_seconds
+  podMonitor:
+    interval: *common_exporter_interval
+    additionalLabels:
+      <<: *common_labels
+  resources:
+    requests:
+      cpu: 1
+      memory: 1024Mi
+    limits:
+      cpu: 1
+      memory: 1024Mi 
+  image:
+    registry: *image_registry
+    repository: *gpu_pod_exporter_repository
+    tag: *gpu_pod_exporter_tag
+    imagePullPolicy: *gpu_pod_exporter_image_pull_policy
+  initContainer:
+    image:
+      registry: *image_registry
+      repository: *alpine_git_image_repository
+      tag: *alpine_git_image_tag
+      pullPolicy: *alpine_git_image_pull_policy
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+  nodeSelector: {}
+    #node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "node-type.coaster.ten1010.io/gpu"
+            operator: "Exists"
+
+dcgm-exporter:
+  enabled: false
+  resources:
+    limits:
+      cpu: 1
+      memory: 1536Mi
+    requests:
+      cpu: 1
+      memory: 1536Mi
+  image:
+    registry: *image_registry
+    repository: *dcgm_exporter_image_repository
+    pullPolicy: *dcgm_exporter_image_pull_policy
+    # Image tag defaults to AppVersion, but you can use the tag key
+    # for the image tag, e.g:
+    tag: *dcgm_exporter_image_tag
+
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+
+  extraEnv:
+    - name: DCGM_EXPORTER_INTERVAL
+      value: *common_exporter_interval_milliseconds
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-type.coaster.ten1010.io/gpu
+                operator: Exists
+
+  # Liveness probe configuration
+  # Checks /health endpoint and optionally verifies DCGM_FI_PROF_SM_ACTIVE metric exists
+  # - requireSmActive: false - SM_ACTIVE metric is optional, only /health is required
+  #   Use this when nodes with and without SM_ACTIVE support are mixed in the cluster
+  # - requireSmActive: true (default) - SM_ACTIVE metric is required, probe fails if metric is not found
+  #   Use this when all nodes support SM_ACTIVE metric
+  livenessProbe:
+    requireSmActive: true  # Set to false if SM_ACTIVE metric is optional
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  serviceMonitor:
+    apiVersion: "monitoring.coreos.com/v1"
+    enabled: true
+    interval: *common_exporter_interval
+    honorLabels: false
+    additionalLabels:
+      <<: *common_labels
+
+ipmi-exporter:
+  enabled: false
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  image:
+    registry: *image_registry
+    repository: *ipmi_exporter_image_repository
+    tag: *ipmi_exporter_image_tag
+    pullPolicy: *ipmi_exporter_image_pull_policy
+  nodeSelector: 
+    #kubernetes.io/hostname: *cp1
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+  affinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: kubernetes.io/hostname
+  #        operator: In
+  #        values:
+  #        - *cp1
+  serviceMonitor:
+    enabled: true
+    namespace: *metrics_namespace # ServiceMonitor가 생성될 네임스페이스 (환경에 맞게 수정)
+    labels:
+      <<: *common_labels
+
+k8s-ephemeral-storage-metrics:
+  enabled: false
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  image:
+    registry: *image_registry
+    repository: *k8s_ephemeral_storage_metrics_image_repository
+    tag: *k8s_ephemeral_storage_metrics_image_tag
+    imagePullPolicy: *k8s_ephemeral_storage_metrics_image_pull_policy
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: vnode3.pnode6.idc1.ten1010.io  
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: kubernetes.io/hostname
+  #          operator: In
+  #          values:
+  #          - *cp1
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+  serviceMonitor:
+    additionalLabels:
+      <<: *common_labels
+
+aipub-report:
+  enabled: false
+  ingress:
+    enabled: *aipub_report_ingress_enabled
+    className: *aipub_report_ingress_class_name
+    host: *aipub_report_ingress_host
+  logLevel: "INFO"
+  #prometheusEndpoint: "http://101.202.0.8:30090"
+  prometheusEndpoint: *metrics_server_url_with_port # VM (via vmauth)
+  
+  image:
+    registry: *image_registry
+    repository: *aipub_report_image_repository
+    tag: *aipub_report_image_tag
+    imagePullPolicy: *aipub_report_image_pull_policy
+  
+  resources:
+    limits:
+      cpu: 1
+      memory: 2048Mi
+    requests:
+      cpu: 1
+      memory: 2048Mi
+
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: kubernetes.io/hostname
+  #          operator: In
+  #          values:
+  #          - *cp1
+  #          - *cp2
+  #          - *cp3    
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+      #kubernetes.io/hostname: *cp1
+  
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+
+  storageProvisioning:
+    size: *aipub_report_storage_size
+    type: *_storage_type
+    accessMode: *aipub_report_persistence_access_mode
+    existingClaim: *aipub_report_existing_claim
+    dynamic:
+      storageClassName: *_storage_class_name
+    static:
+      type: *_storage_static_type
+      local: *aipub_report_storage_local
+      nfs: *aipub_report_storage_nfs
+  usageCache:
+    retentionPeriod: 100
+  enablePeriodUsageReport: true
+  probes:
+    startup:
+      enabled: true
+      failureThreshold: 180  # 180회 * 10초 = 1800초 (30분) 대기
+      periodSeconds: 10
+    liveness:
+      enabled: false
+    readiness:
+      enabled: false
+
+aipub-monitoring:
+  enabled: false
+  replicaCount: 1
+  basePath: *aipub_monitoring_base_path
+  image:
+    registry: *image_registry
+    repository: *aipub_monitoring_image_repository
+    tag: *aipub_monitoring_image_tag
+    imagePullPolicy: *aipub_monitoring_image_pull_policy
+  initContainer:
+    image:
+      registry: *image_registry
+      repository: *busybox_image_repository
+      tag: *busybox_image_tag
+      pullPolicy: *busybox_image_pull_policy
+
+  service:
+    type: ClusterIP
+    port: 8501
+
+  # 리소스 설정
+  resources:
+    <<: *aipub_monitoring_resources
+
+  # 노드 스케줄링 설정
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+    #kubernetes.io/hostname: *cp1
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+
+  affinity:
+  #  nodeAffinity:
+  #    requiredDuringSchedulingIgnoredDuringExecution:
+  #      nodeSelectorTerms:
+  #      - matchExpressions:
+  #        - key: kubernetes.io/hostname
+  #          operator: In
+  #          values:
+  #          - *cp1
+  #          - *cp2
+  #          - *cp3    
+
+  # 환경 변수 설정
+  env:
+    # 타임존
+    TIME_ZONE: "Asia/Seoul"
+    # 컨테이너 로컬 타임존 (datetime.fromtimestamp 등 기본 로컬 시간에 영향)
+    TZ: "Asia/Seoul"
+    # 테스트 모드 활성화 (true/false)
+    TEST_MODE: "false"
+    # 인증 방식 (none, keycloak, cookie)
+    AUTH_TYPE: "cookie"
+    # 메트릭스 백엔드 서비스 이름
+    METRICS_SERVICE_NAME: "vmauth-vmstack-vmauth"
+    # 메트릭스 백엔드 네임스페이스
+    METRICS_NAMESPACE: "aipub-promstack"
+    # 메트릭스 백엔드 포트
+    METRICS_PORT: "8427"
+    # CSV 다운로드 기능 활성화 (true/false)
+    CSV_DOWNLOAD_ENABLED: "true"
+    # IPMI 전력 센서 이름 (환경마다 다를 수 있음)
+    # TEN: PWR_SYSTEM, LGD: Pwr Consumption, SDI: Power Meter, Samsung Display: Sys Power
+    IPMI_POWER_SENSOR_NAME: "PWR_SYSTEM|Pwr Consumption|Power Meter|Sys Power"
+    # 차트 최소 STEP
+    MIN_STEP_SECONDS: *common_exporter_interval_seconds
+
+  # Ingress 및 TLS 설정
+  ingress:
+    ingressClassName: "lb1"
+    host: "aipub-monitoring.cluster3.idc1.ten1010.io"
+    # caCertificate는 auth.enabled=true 일 때 필요함
+    caCertificate: |
+      -----BEGIN CERTIFICATE-----
+      -----END CERTIFICATE-----
+    tlsCertificate: |
+      -----BEGIN CERTIFICATE-----
+      -----END CERTIFICATE-----
+    tlsPrivateKey: |
+      -----BEGIN PRIVATE KEY-----
+      -----END PRIVATE KEY-----
+
+  # Streamlit 인증 설정
+  auth:
+    enabled: false
+    # cookieSecret을 설정하지 않으면 자동으로 랜덤 값 생성됨
+    # cookieSecret: "custom-secret-here"
+    keycloak:
+      clientId: ""
+      clientSecret: ""
+      url: ""
+
+grafana-postinstall-job:
+  enabled: false
+
+oauth2-proxies:
+  enabled: false
+
+block-pod-util-webhook:
+  enabled: false
+  caCrt: ""
+  tlsKey: ""
+  tlsCrt: ""
+
+  # Container command and args configuration
+  command:
+    - python3
+    - main.py
+  args: []
+
+
+  replicaCount: 1
+
+  image:
+    registry: *image_registry
+    repository: monitoring/block-pod-util-webhook
+    pullPolicy: IfNotPresent
+    tag: *aipub_monitoring_tool_version
+
+  deliveryImage:
+    registry: *image_registry
+    repository: monitoring/delivery-hook-library
+    pullPolicy: IfNotPresent
+    tag: *aipub_monitoring_tool_version
+
+  # 리소스 설정
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 200m
+      memory: 200Mi
+
+  # 노드 스케줄링 설정
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      effect: "NoSchedule"
+      operator: "Exists"
+
+  affinity: {}
+    #nodeAffinity:
+    #  requiredDuringSchedulingIgnoredDuringExecution:
+    #    nodeSelectorTerms:
+    #    - matchExpressions:
+    #      - key: "node-role.kubernetes.io/control-plane"
+    #        operator: "Exists"
+
+  # 네임스페이스 선택 설정
+  namespaceSelector: {}

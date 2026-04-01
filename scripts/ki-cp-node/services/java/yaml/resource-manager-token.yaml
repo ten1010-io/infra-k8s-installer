@@ -1,0 +1,46 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aipub-resources-manager
+rules:
+  - apiGroups: [ "project.aipub.ten1010.io" ]
+    resources:
+      - "aipubusers"
+      - "imagehubs"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+      - "create"
+      - "update"
+      - "patch"
+      - "delete"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: aipub-resources-manager
+  namespace: aipub
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aipub-resources-manager-binding
+subjects:
+  - kind: ServiceAccount
+    name: aipub-resources-manager
+    namespace: aipub
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: aipub-resources-manager
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aipub-resources-manager-secret
+  namespace: aipub
+  annotations:
+    kubernetes.io/service-account.name: aipub-resources-manager
+type: kubernetes.io/service-account-token
+---

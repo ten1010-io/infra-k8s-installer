@@ -1,0 +1,10 @@
+apiVersion: v2
+name: aipub-monitoring
+description: AI Pub Overview Dashboard - Streamlit 기반 모니터링 대시보드
+type: application
+version: 1.1.4
+appVersion: "20260215"
+home: https://github.com/ten1010-io/aipub-monitoring
+maintainers:
+  - name: soohyun
+    email: soohyun.jung@ten1010.io

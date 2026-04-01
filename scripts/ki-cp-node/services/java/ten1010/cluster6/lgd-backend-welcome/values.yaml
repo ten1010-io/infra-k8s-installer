@@ -1,0 +1,108 @@
+replicaCount: 1
+
+image:
+  repository: vnode2.pnode1.idc1.ten1010.io:8443/aipub-ops-4.0.0/lgd-backend-welcome
+  pullPolicy: Always
+  tag: "0.0.0-SNAPSHOT"
+
+imagePullSecrets:
+  - name: harbor-java
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "lgd-backend-welcome"
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: "lb1"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
+  hosts:
+    - host: welcome.cluster6.idc1.ten1010.io
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: lgd-backend-welcome-tls
+      hosts:
+        - welcome.cluster6.idc1.ten1010.io
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    hostPath:
+      path: /opt/aipub/certs
+      type: Directory
+  - name: java-agents
+    hostPath:
+      path: /opt/aipub/agents
+      type: Directory
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+  - mountPath: /opt/aipub/agents
+    name: java-agents
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  server:
+    port: 8080
+  spring:
+    profiles:
+      active: "production"
+  app:
+    gateway:
+      ssoUrl: "https://aipub.cluster6.idc1.ten1010.io"
+      backendUrl: "https://aipub.cluster6.idc1.ten1010.io"
+
+agent:
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "lgd-backend-welcome"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

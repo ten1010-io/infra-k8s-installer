@@ -1,0 +1,80 @@
+replicaCount: 1
+
+image:
+  repository: aipub-web
+  pullPolicy: IfNotPresent
+  tag: "beta-2.0.15"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubVersion: "v4.1.0"
+  aipubTitle: "AI Pub"
+  aipubApiUrl: https://aip.lgdisplay.com
+  aipubBaseHost: lgdisplay.com
+  aipubLogoutRedirectUrl: http://lets.lgdisplay.com:8086
+  aipubBrand: "lgd"
+  aipubUseMock: "false"
+  aipubDocsUrl: https://aip.lgdisplay.com/docs
+  aipubHarborUrl: https://aipub-harbor.lgdisplay.com
+  aipubMode: ops
+  aipubUseSso: "true"
+  aipubNodeUrl: https://aip.lgdisplay.com/alloc
+  aipubNoticeUrl: https://aip.lgdisplay.com/notice
+  aipubReportUrl: https://aip.lgdisplay.com/report
+  aipubKibanaUrl: https://aip.lgdisplay.com/kibana
+  aipubStreamlitUrl: https://aip.lgdisplay.com/streamlit
+  aipubSshPortMin: "12000"
+  aipubSshPortMax: "12999"
+  aipubVolumes: '[{"type":"nfs","value":"nfs"},{"type":"storageclass","value":"vastdata-eth-delete"},{"type":"storageclass","value":"vastdata-eth-retain"},{"type":"storageclass","value":"vastdata-ib-delete"},{"type":"storageclass","value":"vastdata-ib-retain"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html

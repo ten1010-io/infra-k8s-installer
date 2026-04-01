@@ -1,0 +1,126 @@
+replicaCount: 1
+
+image:
+  repository: "" # ## HELM installer ##
+  pullPolicy: Always
+  tag: "" # ## HELM installer ##
+
+imagePullSecrets:
+  - name: harbor-java
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: "aipub-backend-batch"
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-batch.logs: '[{"source": "java", "service": "aipub-backend-batch"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    secret:
+      secretName: custom-ca-certs
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  profiles:
+    active: production
+  spring:
+    batch:
+      jdbc:
+        initializeSchema: never
+    dataSource:
+      batch:
+        driverClassName: org.postgresql.Driver
+        url: jdbc:postgresql://keycloak-postgresql.aipub.svc.cluster.local:5432/aipub
+        username: aipub
+        password: Password1@
+        hikari:
+          maximumPoolSize: 10
+          minimumIdle: 5
+    jpa:
+      hibernate:
+        ddlAuto: validate
+      showSql: false
+      generateDdl: false
+      openInView: false
+      properties:
+        hibernate:
+          formatSql: false
+          defaultBatchFetchSize: 100
+  app:
+    gateway:
+      backendUrl: http://aipub-backend-gateway.aipub.svc.cluster.local:8080
+      username: testuser
+      password: asdasdasd
+    schedule:
+      interval:
+        createKeycloakJob: 10
+        createHarborJob: 10
+        createK8sJob: 10
+        disableKeycloakJob: 123
+        deleteHarborJob: 125
+        deleteK8sJob: 127
+      crontab:
+        dormancyJob: 0 0 4 * * ?
+        rotatePasswordJob: 0 0 4 * * ?
+  logging:
+    level:
+      orgSpringframeworkWeb: "" # ## HELM installer ##
+  management:
+    tracing:
+      enabled: true
+
+agent:
+  datadog: "false"
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-batch"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"

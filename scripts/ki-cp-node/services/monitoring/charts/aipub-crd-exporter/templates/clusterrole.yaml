@@ -1,0 +1,8 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "aipub-crd-exporter.fullname" . }}
+  labels:
+    {{- include "aipub-crd-exporter.labels" . | nindent 4 }}
+rules:
+{{- toYaml .Values.clusterRole.rules | nindent 0 }}

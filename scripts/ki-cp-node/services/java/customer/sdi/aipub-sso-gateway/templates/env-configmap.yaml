@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-sso-gateway.labels" . | nindent 4 }}
+data:
+  SERVER_PORT: {{ .Values.applicationYaml.server.port | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.spring.profiles.active | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_SSL_USE_INSECURE_TRUST_MANAGER: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.ssl.useInsecureTrustManager | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_COMPRESSION: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.compression | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_WEBSOCKET_MAX_FRAME_PAYLOAD_LENGTH: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.websocketMaxFramePayloadLength | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userCreate.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userCreate.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userCreate.predicatePath | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_PREDICATES_1: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userCreate.predicateMethod | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_0_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userCreate.filterName | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userUpdatePassword.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userUpdatePassword.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userUpdatePassword.predicatePath | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_PREDICATES_1: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userUpdatePassword.predicateMethod | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_1_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userUpdatePassword.filterName | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userResetPassword.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userResetPassword.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userResetPassword.predicatePath | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_PREDICATES_1: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userResetPassword.predicateMethod | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_2_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.userResetPassword.filterName | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_3_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubBackend.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_3_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubBackend.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_3_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubBackend.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_3_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubBackend.filters.aipubAdapter.name | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.basicAuthAdapter.name | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_0_ARGS_ADMINUSER: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.basicAuthAdapter.args.adminUser | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_0_ARGS_ADMINPASSWORD: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.basicAuthAdapter.args.adminPassword | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_0_ARGS_USERUSER: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.basicAuthAdapter.args.userUser | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_0_ARGS_USERPASSWORD: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.basicAuthAdapter.args.userPassword | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_1_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.removeRequestHeader.name | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_4_FILTERS_1_ARGS_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.kibana.filters.removeRequestHeader.args.name | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_5_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.streamlit.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_5_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.streamlit.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_5_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.streamlit.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_5_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.streamlit.filters.name | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_6_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.notice.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_6_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.notice.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_6_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.notice.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_6_FILTERS_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.notice.filters.arg | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_7_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.alloc.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_7_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.alloc.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_7_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.alloc.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_7_FILTERS_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.alloc.filters.arg | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_8_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.report.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_8_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.report.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_8_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.report.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_8_FILTERS_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.report.filters.arg | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_9_ID: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubFrontend.id | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_9_URI: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubFrontend.uri | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_9_PREDICATES_0: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubFrontend.predicates.path | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_ROUTES_9_FILTERS_0_NAME: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.aipubFrontend.filters.aipubAdapter.name | quote }}
+
+  APP_DOMAIN_AUTH_BACKEND_SERVER_URL: {{ .Values.applicationYaml.app.domain.auth.backendServerUrl | quote }}
+  APP_DOMAIN_AUTH_BASIC_AUTH_USERNAME: {{ .Values.applicationYaml.app.domain.auth.basicAuthUsername | quote }}
+  APP_DOMAIN_AUTH_BASIC_AUTH_PASSWORD: {{ .Values.applicationYaml.app.domain.auth.basicAuthPassword | quote }}
+  APP_DOMAIN_AUTH_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.auth.verifyingSsl | quote }}
+  APP_DOMAIN_AUTH_INIT_PASSWORD: {{ .Values.applicationYaml.app.domain.auth.initPassword | quote }}
+
+  APP_DOMAIN_KEYCLOAK_SERVER_URL: {{ .Values.applicationYaml.app.domain.keycloak.serverUrl | quote }}
+  APP_DOMAIN_KEYCLOAK_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.keycloak.verifyingSsl | quote }}
+  APP_DOMAIN_KEYCLOAK_CLIENT_REALM: {{ .Values.applicationYaml.app.domain.keycloak.clientRealm | quote }}
+  APP_DOMAIN_KEYCLOAK_CLIENT_ID: {{ .Values.applicationYaml.app.domain.keycloak.clientId | quote }}
+  APP_DOMAIN_KEYCLOAK_CLIENT_SECRET: {{ .Values.applicationYaml.app.domain.keycloak.clientSecret | quote }}
+  APP_DOMAIN_KEYCLOAK_KEYCLOAK_PUBLIC_KEY: {{ .Values.applicationYaml.app.domain.keycloak.keycloakPublicKey | quote }}
+
+  APP_COOKIE_ACCESS_MAX_AGE: {{ .Values.applicationYaml.app.cookie.accessMaxAge | quote }}
+  APP_COOKIE_REFRESH_MAX_AGE: {{ .Values.applicationYaml.app.cookie.refreshMaxAge | quote }}
+  APP_COOKIE_ID_MAX_AGE: {{ .Values.applicationYaml.app.cookie.idMaxAge | quote }}
+  APP_COOKIE_DOMAIN: {{ .Values.applicationYaml.app.cookie.domain | quote }}
+
+  APP_REDIRECT_INDEX_URL: {{ .Values.applicationYaml.app.redirect.indexUrl | quote }}
+  APP_REDIRECT_AIPUB_URL: {{ .Values.applicationYaml.app.redirect.indexUrl | quote }}
+
+  WEBCLIENT_MAX_IN_MEMORY_SIZE: {{ .Values.applicationYaml.web.client.maxInMemorySize | quote }}
+
+  CORS_ALLOWED_ORIGIN: {{ .Values.applicationYaml.cors.allowedOrigin | quote }}
+
+  TZ: "Asia/Seoul"

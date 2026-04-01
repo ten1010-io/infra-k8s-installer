@@ -1,0 +1,81 @@
+replicaCount: 1
+
+image:
+  repository: aipub-web
+  pullPolicy: IfNotPresent
+  tag: "4.0.0"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubVersion: "v4.0.0"
+  aipubTitle: "AI Pub"
+  aipubApiUrl: https://gpuhub.samsungsdi.com
+  aipubBaseHost: samsungsdi.com
+  aipubLogoutRedirectUrl: https://gpuhub.samsungsdi.com/welcome
+  aipubBrand: "aipub"
+  aipubUseMock: "false"
+  aipubDocsUrl: https://gpuhub.samsungsdi.com/docs
+  aipubHarborUrl: https://harbor.gpuhub.samsungsdi.com
+  aipubKibanaUserUrl: https://gpuhub.samsungsdi.com/kibana
+  aipubMode: ops
+  aipubUseSso: "false"
+  aipubNodeUrl: https://gpuhub.samsungsdi.com/alloc
+  aipubNoticeUrl: https://gpuhub.samsungsdi.com/notice
+  aipubReportUrl: https://gpuhub.samsungsdi.com/report
+  aipubKibanaUrl: https://gpuhub.samsungsdi.com/kibana
+  aipubStreamlitUrl: https://gpuhub.samsungsdi.com/streamlit
+  aipubSshPortMin: "1024"
+  aipubSshPortMax: "65535"
+  aipubVolumes: '[{"type":"nfs","value":"nfs"},{"type":"storageclass","value":"ontap-nas"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html

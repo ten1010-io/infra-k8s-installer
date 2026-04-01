@@ -1,0 +1,10 @@
+monitoring_service_values_path: "{{ ki_env_scripts_path }}/ki-cp-node/services/monitoring/values.yaml"
+
+monitoring_victoria_metrics_release_count: 2
+
+monitoring_storage_type: "dynamic"
+monitoring_storage_static_type: "local"
+monitoring_storage_class_name: "ontap-nas"
+monitoring_nfs_server: "nfs.example.com"
+
+monitoring_image_registry: "registry.ten1010.io:8443/aipub-4.5.0"

@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-frontend.labels" . | nindent 4 }}
+data:
+  AIPUB_VERSION: {{ .Values.applicationYaml.aipubVersion | quote }}
+  AIPUB_MODE: {{ .Values.applicationYaml.aipubMode | quote }}
+  AIPUB_BRAND: {{ .Values.applicationYaml.aipubBrand | quote }}
+  AIPUB_TITLE: {{ .Values.applicationYaml.aipubTitle | quote }}
+  AIPUB_API_URL: {{ .Values.applicationYaml.aipubApiUrl | quote }}
+  AIPUB_BASE_HOST: {{ .Values.applicationYaml.aipubBaseHost | quote }}
+  AIPUB_USE_MOCK: {{ .Values.applicationYaml.aipubUseMock | quote }}
+  AIPUB_USE_SSO: {{ .Values.applicationYaml.aipubUseSso | quote }}
+  AIPUB_LOGOUT_REDIRECT_URL: {{ .Values.applicationYaml.aipubLogoutRedirectUrl | quote }}
+  AIPUB_GRAFANA_ADMIN_URL: {{ .Values.applicationYaml.aipubKibanaUrl | quote }}
+  AIPUB_GRAFANA_USER_URL: {{ .Values.applicationYaml.aipubKibanaUrl | quote }}
+  AIPUB_KIBANA_URL: {{ .Values.applicationYaml.aipubKibanaUrl | quote }}
+  AIPUB_STREAMLIT_URL: {{ .Values.applicationYaml.aipubStreamlitUrl | quote }}
+  AIPUB_HARBOR_URL: {{ .Values.applicationYaml.aipubHarborUrl | quote }}
+  AIPUB_NODE_URL: {{ .Values.applicationYaml.aipubNodeUrl | quote }}
+  AIPUB_NOTICE_URL: {{ .Values.applicationYaml.aipubNoticeUrl | quote }}
+  AIPUB_REPORT_URL: {{ .Values.applicationYaml.aipubReportUrl | quote }}
+  AIPUB_DOCS_URL: {{ .Values.applicationYaml.aipubDocsUrl | quote }}
+  AIPUB_SSH_PORT_MIN: {{ .Values.applicationYaml.aipubSshPortMin | quote }}
+  AIPUB_SSH_PORT_MAX: {{ .Values.applicationYaml.aipubSshPortMax | quote }}
+  AIPUB_VOLUMES: {{ .Values.applicationYaml.aipubVolumes | quote }}
+
+  APP_PREFIX: {{ .Values.applicationYaml.appPrefix | quote }}
+
+  ASSET_DIR: {{ .Values.applicationYaml.assetDir | quote }}
+
+  TZ: "Asia/Seoul"

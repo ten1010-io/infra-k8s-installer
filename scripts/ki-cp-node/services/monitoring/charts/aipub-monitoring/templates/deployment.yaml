@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    {{- include "aipub-monitoring.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "aipub-monitoring.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "aipub-monitoring.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if eq .Values.env.AUTH_TYPE "keycloak" }}
+      initContainers:
+        - name: setup-secrets
+          image: "{{ if .Values.initContainer.image.registry }}{{ .Values.initContainer.image.registry }}/{{ end }}{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              REDIRECT_URI="https://{{ .Values.ingress.host }}/oauth2callback"
+              
+              cat > /shared/secrets.toml << EOF              
+              [auth]
+              redirect_uri = "$REDIRECT_URI"
+              cookie_secret = "$COOKIE_SECRET"
+              
+              [auth.keycloak]
+              client_id = "{{ .Values.auth.keycloak.clientId }}"
+              client_secret = "$CLIENT_SECRET"
+              server_metadata_url = "https://{{ .Values.auth.keycloak.url }}/realms/k8s/.well-known/openid-configuration"
+              EOF
+          env:
+            - name: CLIENT_SECRET
+              value: "{{ .Values.auth.keycloak.clientSecret }}"
+            - name: COOKIE_SECRET
+              value: "{{ .Values.auth.cookieSecret | default (printf "%s-%s" (randAlphaNum 32) (randAlphaNum 16)) }}"
+          volumeMounts:
+            - name: shared-config
+              mountPath: /shared
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          workingDir: /root
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          {{- if .Values.resources }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          command:
+            - streamlit
+            - run
+            - main.py
+            - --browser.gatherUsageStats=false
+            - --client.toolbarMode=minimal
+            - --server.fileWatcherType=none
+            - --server.baseUrlPath=/streamlit
+            - --server.enableCORS=false
+            - --server.enableXsrfProtection=false
+            - --theme.base=light
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- if eq .Values.env.AUTH_TYPE "keycloak" }}
+          volumeMounts:
+            - name: shared-config
+              mountPath: /root/.streamlit
+              readOnly: true
+            - name: ca-cert
+              mountPath: /certs
+              readOnly: true
+          {{- end }}
+      {{- if eq .Values.env.AUTH_TYPE "keycloak" }}
+      volumes:
+        - name: shared-config
+          emptyDir: {}
+        - name: ca-cert
+          secret:
+            secretName: {{ .Release.Name }}-tls
+            items:
+            - key: ca.crt
+              path: ca.crt
+      {{- end }}

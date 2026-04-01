@@ -1,0 +1,31 @@
+java_service_version: "4_6_x"
+java_service_namespace: "aipub"
+java_service_config_path: "{{ ki_env_scripts_path }}/ki-cp-node/services/java/config.yaml"
+
+java_agent_datadog: false
+
+java_aipub_version: "v4.6.0"
+java_image_base: "registry.ten1010.io:8443/aipub"
+java_api_tag: ""
+java_usage_tag: ""
+java_gateway_tag: ""
+java_batch_tag: ""
+java_adapter_tag: ""
+java_frontend_tag: ""
+java_project_controller_tag: ""
+
+java_aipub_domain: "{{ aipub_ingress_zone }}"
+java_aipub_host_prefix: "aipub"
+java_harbor_host_prefix: "{{ aipub_harbor_ingress_subdomain }}"
+
+java_api_profiles: "batch"
+java_api_flyway: false
+java_ssh_port_min: "1024"
+java_ssh_port_max: "65535"
+java_volumes:
+  - type: nfs
+    value: nfs
+  - type: storageclass
+    value: ontap-nas
+
+java_ingress_tls_secret_name: "aipub-backend-adapter-tls"

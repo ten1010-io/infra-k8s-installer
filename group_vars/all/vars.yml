@@ -52,3 +52,4 @@ aipub_harbor_replica_count: 3
 aipub_harbor_registry_storage_size: 512Gi
 aipub_harbor_postgresql_storage_size: 128Gi
 aipub_harbor_redis_storage_size: 32Gi
+

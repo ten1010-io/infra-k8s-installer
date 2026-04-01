@@ -1,0 +1,16 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    aipub_charts:
+      - aipub-frontend
+      - aipub-backend-adapter
+      - aipub-backend-batch
+      - aipub-backend-gateway
+      - aipub-backend-usage
+      - aipub-backend-api
+  tasks:
+    - name: Uninstall AIPub Helm charts
+      shell: "sudo helm uninstall {{ item }} -n {{ java_service_namespace }} --ignore-not-found"
+      loop: "{{ aipub_charts }}"
+      when: inventory_hostname == k8s_cp_nodes | first

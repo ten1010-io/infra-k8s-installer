@@ -1,0 +1,51 @@
+caCrt: ""
+tlsKey: ""
+tlsCrt: ""
+
+# Container command and args configuration
+command:
+  - python3
+  - main.py
+args: []
+
+
+replicaCount: 1
+
+image:
+  repository: block-pod-util-webhook
+  pullPolicy: IfNotPresent
+  tag: "v0.1.0"
+
+deliveryImage:
+  repository: delivery-hook-library
+  pullPolicy: IfNotPresent
+  tag: "v0.1.0"
+
+# 리소스 설정
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 500Mi
+  # requests:
+  #   cpu: 1000m
+  #   memory: 500Mi
+
+# 노드 스케줄링 설정
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
+    operator: "Exists"
+
+affinity: {}
+  #nodeAffinity:
+  #  requiredDuringSchedulingIgnoredDuringExecution:
+  #    nodeSelectorTerms:
+  #    - matchExpressions:
+  #      - key: "node-role.kubernetes.io/control-plane"
+  #        operator: "Exists"
+
+# 네임스페이스 선택 설정
+namespaceSelector: {}

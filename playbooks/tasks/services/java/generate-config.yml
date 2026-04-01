@@ -1,0 +1,7 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Generate java config.yaml from template
+      shell: "sudo {{ ki_env_ki_venv_path }}/bin/jinja2 --format yaml -o {{ java_service_config_path }} {{ ki_env_scripts_path }}/ki-cp-node/services/java/templates/config.yaml.j2 {{ ki_tmp_vars_path }}"
+      when: inventory_hostname == k8s_cp_nodes | first

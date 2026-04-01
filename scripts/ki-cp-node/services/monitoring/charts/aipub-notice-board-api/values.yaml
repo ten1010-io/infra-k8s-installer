@@ -1,0 +1,75 @@
+appVersion: "0.1.0"
+
+replicas: 1
+
+image:
+  repository: aipub-notice-board-api
+  tag: ""
+  pullPolicy: Never
+
+preInstallJob:
+  image:
+    registry: ""
+    repository: "busybox"
+    tag: "1.31.1"
+    pullPolicy: "IfNotPresent"
+
+service:
+  port: 8009
+  targetPort: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  hostname: ""
+  createTls:
+    enabled: false
+    certPath: ""  # Provide either certPath or certData if enabled is true.
+    certData: ""
+    keyPath: ""  # Provide either keyPath or keyData if enabled is true.
+    keyData: ""
+
+storageProvisioning:
+  size: "20Gi"
+  type: "dynamic"  # Options: "static" or "dynamic"
+  static:
+    type: ""  # Options: "local" or "nfs"
+    local:
+      path: "/aipub/pv/aipub-notice-board-api/staticfiles"  # host path in the node
+      nodeSelector:
+        - kubernetes.io/hostname: "cp1.example.com"
+    nfs:
+      server: "nfs.example.com"
+      export: "/data/aipub"
+      subPath: "aipub-notice-board-api/staticfiles"
+  dynamic:
+    storageClassName: ""
+
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
+    key: node-role.kubernetes.io/control-plane
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 10
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 10
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+elasticsearch:
+  namespace: aipub-efk
+  service:
+    scheme: "https"
+    name: ""
+    port: 9200
+  masterCredential: ""

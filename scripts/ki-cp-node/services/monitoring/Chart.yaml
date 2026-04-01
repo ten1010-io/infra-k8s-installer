@@ -1,0 +1,142 @@
+apiVersion: v2
+name: aipub-monitoring-stack
+description: Must use the scripts/install.sh script to install the stack. This is a sequential deployment umbrella chart for AI Pub monitoring stack.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: elasticsearch
+    version: "~8.15.3"
+    repository: "file://./charts/elasticsearch"
+    condition: elasticsearch.enabled
+    tags: ["oss", "efk-stack"]
+  - name: kibana
+    version: "~8.15.3"
+    repository: "file://./charts/kibana"
+    condition: kibana.enabled
+    tags: ["oss", "efk-stack"]
+  - name: kibana-postinstall-job
+    version: "*"
+    repository: "file://./charts/kibana-postinstall-job"
+    condition: kibana-postinstall-job.enabled
+    tags: ["house", "efk-stack"]
+  - name: fluent-bit
+    version: "~0.48.3"
+    repository: "file://./charts/fluent-bit"
+    condition: fluent-bit.enabled
+    tags: ["oss", "efk-stack"]
+  - name: fluent-bit-event
+    version: "~0.48.3"
+    repository: "file://./charts/fluent-bit-event"
+    condition: fluent-bit-event.enabled
+    tags: ["oss", "efk-stack"]
+  - name: kube-prometheus-stack
+    version: "*"
+    repository: "file://./charts/kube-prometheus-stack"
+    condition: kube-prometheus-stack.enabled
+    tags: ["oss", "promstack"]
+  - name: prometheus-pushgateway
+    version: "*"
+    repository: "file://./charts/prometheus-pushgateway"
+    condition: prometheus-pushgateway.enabled
+    tags: ["oss", "promstack"]
+  - name: prometheus-adapter
+    version: "*"
+    repository: "file://./charts/prometheus-adapter"
+    condition: prometheus-adapter.enabled
+    tags: ["oss", "promstack"]
+  - name: metric-server
+    version: "*"
+    repository: "file://./charts/metric-server"
+    condition: metric-server.enabled
+    tags: ["oss", "promstack"]
+  - name: prom-infra-alerter
+    version: "*"
+    repository: "file://./charts/prom-infra-alerter"
+    condition: prom-infra-alerter.enabled
+    tags: ["house", "promstack"]
+  - name: grafana-postinstall-job
+    version: "*"
+    repository: "file://./charts/grafana-postinstall-job"
+    condition: grafana-postinstall-job.enabled
+    tags: ["house", "promstack"]
+  - name: victoria-metrics-k8s-stack
+    version: "*"
+    repository: "file://./charts/victoria-metrics-k8s-stack"
+    condition: victoria-metrics-k8s-stack.enabled
+    tags: ["oss", "vmstack"]
+  - name: victoria-metrics-single
+    version: "*"
+    repository: "file://./charts/victoria-metrics-single"
+    condition: victoria-metrics-single.enabled
+    tags: ["oss", "vmstack"]
+  - name: node-info-exporter
+    version: "*"
+    repository: "file://./charts/node-info-exporter"
+    condition: node-info-exporter.enabled
+    tags: ["house", "exporters"]
+  - name: aipub-crd-exporter
+    version: "*"
+    repository: "file://./charts/aipub-crd-exporter"
+    condition: aipub-crd-exporter.enabled
+    tags: ["house", "exporters"]
+  - name: persistent-linkerd-exporter
+    version: "*"
+    repository: "file://./charts/persistent-linkerd-exporter"
+    condition: persistent-linkerd-exporter.enabled
+    tags: ["house", "exporters"]
+  - name: gpu-pod-exporter
+    version: "*"
+    repository: "file://./charts/gpu-pod-exporter"
+    condition: gpu-pod-exporter.enabled
+    tags: ["house", "exporters"]
+  - name: ipmi-exporter
+    version: "*"
+    repository: "file://./charts/ipmi-exporter"
+    condition: ipmi-exporter.enabled
+    tags: ["oss", "exporters"]
+  - name: k8s-ephemeral-storage-metrics
+    version: "*"
+    repository: "file://./charts/k8s-ephemeral-storage-metrics"
+    condition: k8s-ephemeral-storage-metrics.enabled
+    tags: ["oss", "exporters"]
+  - name: dcgm-exporter
+    version: "*"
+    repository: "file://./charts/dcgm-exporter"
+    condition: dcgm-exporter.enabled
+    tags: ["oss", "exporters"]
+  - name: aipub-notice-board-api
+    version: "*"
+    repository: "file://./charts/aipub-notice-board-api"
+    condition: aipub-notice-board-api.enabled
+    tags: ["house", "apps"]
+  - name: aipub-cluster-overview-api
+    version: "*"
+    repository: "file://./charts/aipub-cluster-overview-api"
+    condition: aipub-cluster-overview-api.enabled
+    tags: ["house", "apps"]
+  - name: aipub-report
+    version: "*"
+    repository: "file://./charts/aipub-report"
+    condition: aipub-report.enabled
+    tags: ["house", "apps"]
+  - name: aipub-monitoring
+    version: "*"
+    repository: "file://./charts/aipub-monitoring"
+    condition: aipub-monitoring.enabled
+    tags: ["house", "apps"]
+  - name: keycloak-client-job
+    version: "*"
+    repository: "file://./charts/keycloak-client-job"
+    condition: keycloak-client-job.enabled
+    tags: ["house", "oidc"]
+  - name: oauth2-proxies
+    version: "*"
+    repository: "file://./charts/oauth2-proxies"
+    condition: oauth2-proxies.enabled
+    tags: ["oss", "oidc"]
+  - name: block-pod-util-webhook
+    version: "*"
+    repository: "file://./charts/block-pod-util-webhook"
+    condition: block-pod-util-webhook.enabled
+    tags: ["house", "apps"]

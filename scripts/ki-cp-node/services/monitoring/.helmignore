@@ -1,0 +1,6 @@
+# Installer packages
+bin/
+installer/
+README.md
+dry-run-output/
+docker-image-tools/

@@ -1,0 +1,132 @@
+replicaCount: 1
+
+image:
+  repository: "" # ## HELM installer ##
+  pullPolicy: Always
+  tag: "" # ## HELM installer ##
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations:
+  ad.datadoghq.com/aipub-backend-usage.logs: '[{"source": "java", "service": "aipub-backend-usage"}]'
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes:
+  - name: ca-certs
+    secret:
+      secretName: custom-ca-certs
+
+volumeMounts:
+  - mountPath: /certificates
+    name: ca-certs
+    readOnly: true
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  spring:
+    profiles:
+      active: production
+    dataSource:
+      driverClassName: org.postgresql.Driver
+      url: jdbc:postgresql://harbor-database.aipub.svc.cluster.local:5432/usages
+      username: aipub
+      password: Password1@
+    jpa:
+      hibernate:
+        ddlAuto: none
+      showSql: false
+      generateDdl: false
+      openInView: false
+    grpc:
+      server:
+        port: &grpcServerPort 9090
+        reflection:
+          enabled: true
+  app:
+    jwt:
+      secretKey: "" # ## HELM installer ##
+    application:
+      type: BACKEND_USAGE
+      id: backend_usage
+    k8s:
+      verifyingSsl: false
+      kubeConfig:
+        mode: in_cluster
+  logging:
+    level:
+      orgSpringframeworkWeb: "" # ## HELM installer ##
+  management:
+    tracing:
+      enabled: true
+
+agent:
+  datadog: "false"
+  javaToolOptions: "-javaagent:/opt/aipub/agents/dd-java-agent.jar"
+  ddTraceAgentPort: "8126"
+  ddService: "aipub-backend-usage"
+  ddEnv: "production"
+  ddVersion: "1.0.0"
+  host: "aipub-backend-datadog.aipub.svc.cluster.local"
+  ddProfilingEnabled: "true"
+  ddProfilingAllocationEnabled: "true"
+
+service:
+  type: ClusterIP
+  ports:
+    - name: grpc
+      port: *grpcServerPort
+      protocol: TCP
+      targetPort: *grpcServerPort
+
+livenessProbe:
+  grpc:
+    port: *grpcServerPort
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  grpc:
+    port: *grpcServerPort
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 3

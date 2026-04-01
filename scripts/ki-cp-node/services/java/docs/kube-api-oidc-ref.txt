@@ -1,0 +1,7 @@
+- --oidc-issuer-url=https://aipub-keycloak.example.com/realms/aipub # 키클록 주소
+    - --oidc-client-id=k8s
+    - --oidc-username-claim=preferred_username
+    - --oidc-groups-claim=groups
+    - --oidc-ca-file=/etc/kubernetes/pki/aipub-ca.crt # aipub keycloak 루트 ca.crt 위치
+    - "--oidc-username-prefix=oidc:"
+    - "--oidc-groups-prefix=oidc:"

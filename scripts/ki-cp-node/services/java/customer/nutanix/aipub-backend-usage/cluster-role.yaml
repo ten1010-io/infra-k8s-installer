@@ -1,0 +1,22 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: usage.aipub.ten1010.io
+rules:
+  - apiGroups: [ "*" ]
+    resources: [ "*" ]
+    verbs: [ "get", "watch", "list" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: usage.aipub.ten1010.io
+subjects:
+  - kind: ServiceAccount
+    namespace: aipub
+    name: aipub-backend-usage
+roleRef:
+  kind: ClusterRole
+  name: usage.aipub.ten1010.io
+  apiGroup: rbac.authorization.k8s.io
+---

@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-backend-gateway.labels" . | nindent 4 }}
+data:
+  SERVER_PORT: {{ .Values.applicationYaml.server.port | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.spring.profiles.active | quote }}
+  SPRING_GRPC_CLIENT_CHANNELS_BACKEND_API_ADDRESS: {{ .Values.applicationYaml.spring.grpc.client.backendApi.address | quote }}
+  SPRING_GRPC_CLIENT_CHANNELS_BACKEND_USAGE_ADDRESS: {{ .Values.applicationYaml.spring.grpc.client.backendUsage.address | quote }}
+  SPRING_WEB_RESOURCES_ADD_MAPPINGS: {{ .Values.applicationYaml.spring.web.resources.addMappings | quote }}
+
+  APP_APPLICATION_TYPE: {{ .Values.applicationYaml.app.application.type | quote }}
+  APP_APPLICATION_ID: {{ .Values.applicationYaml.app.application.id | quote }}
+
+  APP_COOKIE_DOMAIN: {{ .Values.applicationYaml.app.cookie.domain | quote }}
+
+  APP_WEB_K8S_PROXY_K8S_URI: {{ .Values.applicationYaml.app.web.k8sProxy.k8sUri | quote }}
+
+  APP_WEB_SECURITY_ALLOWED_ORIGINS_0: {{ .Values.applicationYaml.app.web.security.allowedOrigins_0 | quote }}
+  APP_WEB_SECURITY_ALLOWED_ORIGIN: {{ .Values.applicationYaml.app.web.security.allowedOrigin | quote }}
+
+  APP_WEB_SECURITY_BASIC_AUTH_USERS_0_USERNAME: {{  .Values.applicationYaml.app.web.security.basicAuth.user.username | quote }}
+  APP_WEB_SECURITY_BASIC_AUTH_USERS_0_ROLES_0: {{ .Values.applicationYaml.app.web.security.basicAuth.user.role | quote }}
+
+  TZ: "Asia/Seoul"
+
+  LOGGING_LEVEL_ROOT: "info"
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: {{ .Values.applicationYaml.logging.level.orgSpringframeworkWeb | quote }}
+
+  MANAGEMENT_TRACING_ENABLED: {{ .Values.applicationYaml.management.tracing.enabled | quote }}
+
+  {{- if eq (.Values.agent.datadog | toString) "true" }}
+  JAVA_TOOL_OPTIONS: {{ .Values.agent.javaToolOptions | quote }}
+  DD_TRACE_AGENT_PORT: {{ .Values.agent.ddTraceAgentPort | quote }}
+  DD_SERVICE: {{ .Values.agent.ddService | quote }}
+  DD_ENV: {{ .Values.agent.ddEnv | quote }}
+  DD_VERSION: {{ .Values.image.tag | quote }}
+  DD_AGENT_HOST: {{ .Values.agent.host | quote }}
+  DD_PROFILING_ENABLED: {{ .Values.agent.ddProfilingEnabled | quote }}
+  DD_PROFILING_ALLOCATION_ENABLED: {{ .Values.agent.ddProfilingAllocationEnabled | quote }}
+  {{- end }}

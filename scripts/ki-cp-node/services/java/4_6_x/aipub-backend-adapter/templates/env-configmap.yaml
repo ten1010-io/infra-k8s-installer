@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-envs
+  labels:
+    {{- include "aipub-backend-adapter.labels" . | nindent 4 }}
+data:
+  SERVER_PORT: {{ .Values.applicationYaml.server.port | quote }}
+  SPRING_PROFILES_ACTIVE: {{ .Values.applicationYaml.spring.profiles.active | quote }}
+
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_COMPRESSION: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.compression | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_SSL_USE_INSECURE_TRUST_MANAGER: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.ssl.useInsecureTrustManager | quote }}
+  SPRING_CLOUD_GATEWAY_SERVER_WEBFLUX_HTTPCLIENT_WEBSOCKET_MAX_FRAME_PAYLOAD_LENGTH: {{ .Values.applicationYaml.spring.cloud.gateway.server.webflux.httpclient.websocketMaxFramePayloadLength | quote }}
+
+  APP_DOMAIN_AUTH_BACKEND_SERVER_URL: {{ .Values.applicationYaml.app.domain.auth.backendServerUrl | quote }}
+  APP_DOMAIN_AUTH_BASIC_AUTH_USERNAME: {{ .Values.applicationYaml.app.domain.auth.basicAuthUsername | quote }}
+  APP_DOMAIN_AUTH_VERIFYING_SSL: {{ .Values.applicationYaml.app.domain.auth.verifyingSsl | quote }}
+
+  APP_COOKIE_ACCESS_MAX_AGE: {{ .Values.applicationYaml.app.cookie.accessMaxAge | quote }}
+  APP_COOKIE_REFRESH_MAX_AGE: {{ .Values.applicationYaml.app.cookie.refreshMaxAge | quote }}
+  APP_COOKIE_ID_MAX_AGE: {{ .Values.applicationYaml.app.cookie.idMaxAge | quote }}
+  APP_COOKIE_DOMAIN: {{ .Values.applicationYaml.app.cookie.domain | quote }}
+
+  APP_REDIRECT_INDEX_URL: {{ .Values.applicationYaml.app.redirect.indexUrl | quote }}
+
+  APP_PROXY_ALLOC_URL: {{ .Values.applicationYaml.app.proxy.allocUrl | quote }}
+  APP_PROXY_FRONTEND_URL: {{ .Values.applicationYaml.app.proxy.frontendUrl | quote }}
+  APP_PROXY_KIBANA_ADMIN_USER: {{ .Values.applicationYaml.app.proxy.kibana.admin.user | quote }}
+  APP_PROXY_KIBANA_URL: {{ .Values.applicationYaml.app.proxy.kibana.url | quote }}
+  APP_PROXY_KIBANA_USER_PASSWORD: {{ .Values.applicationYaml.app.proxy.kibana.user.password | quote }}
+  APP_PROXY_KIBANA_USER_USER: {{ .Values.applicationYaml.app.proxy.kibana.user.user | quote }}
+  APP_PROXY_NOTICE_URL: {{ .Values.applicationYaml.app.proxy.noticeUrl | quote }}
+  APP_PROXY_REPORT_URL: {{ .Values.applicationYaml.app.proxy.reportUrl | quote }}
+  APP_PROXY_STREAMLIT_URL: {{ .Values.applicationYaml.app.proxy.streamlitUrl | quote }}
+  APP_PROXY_WEB_TERMINAL_WORKSPACE_CONTROLLER_URL: {{ .Values.applicationYaml.app.proxy.webTerminal.workspaceControllerUrl | quote }}
+
+  WEBCLIENT_MAX_IN_MEMORY_SIZE: {{ .Values.applicationYaml.web.client.maxInMemorySize | quote }}
+
+  CORS_ALLOWED_ORIGIN: {{ .Values.applicationYaml.cors.allowedOrigin | quote }}
+
+  TZ: "Asia/Seoul"
+
+  LOGGING_LEVEL_ROOT: "info"
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD: {{ .Values.applicationYaml.logging.level.orgSpringframeworkCloud | quote }}
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: {{ .Values.applicationYaml.logging.level.orgSpringframeworkWeb | quote }}
+
+  MANAGEMENT_TRACING_ENABLED: {{ .Values.applicationYaml.management.tracing.enabled | quote }}
+
+  {{- if eq (.Values.agent.datadog | toString) "true" }}
+  JAVA_TOOL_OPTIONS: {{ .Values.agent.javaToolOptions | quote }}
+  DD_TRACE_AGENT_PORT: {{ .Values.agent.ddTraceAgentPort | quote }}
+  DD_SERVICE: {{ .Values.agent.ddService | quote }}
+  DD_ENV: {{ .Values.agent.ddEnv | quote }}
+  DD_VERSION: {{ .Values.image.tag | quote }}
+  DD_AGENT_HOST: {{ .Values.agent.host | quote }}
+  DD_PROFILING_ENABLED: {{ .Values.agent.ddProfilingEnabled | quote }}
+  DD_PROFILING_ALLOCATION_ENABLED: {{ .Values.agent.ddProfilingAllocationEnabled | quote }}
+  {{- end }}

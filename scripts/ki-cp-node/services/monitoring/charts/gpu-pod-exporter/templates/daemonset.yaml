@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-pod-metric-exporter-daemonset
+  namespace:  {{ include "promstackNamespace" . }}
+  labels:
+    app: gpu-pod-metric-exporter
+spec:
+  selector:
+    matchLabels:
+      app: gpu-pod-metric-exporter
+  template:
+    metadata:
+      labels:
+        app: gpu-pod-metric-exporter
+        monitor: gpu-pod-monitor
+    spec:
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      hostPID: true #이 값을 설정하면 컨테이너에서 호스트에서 실행 중인 모든 gpu process를 제어할 수 있음.(kill도 가능.)
+      {{- if .Values.git_clone_init_container }}
+      initContainers:
+      - name: clone-repo
+        image: "{{ if .Values.initContainer.image.registry }}{{ .Values.initContainer.image.registry }}/{{ end }}{{ .Values.initContainer.image.repository }}:{{ .Values.initContainer.image.tag }}"
+        command:
+        - git
+        - clone
+        - https://{{ .Values.git_user_name }}:{{ .Values.git_token }}@github.com/ten1010-io/aipub-monitoring-tools.git
+        - /code
+        volumeMounts:
+        - name: code
+          mountPath: /code
+      {{- end }}
+      containers:
+      - name: cuda-container
+        {{- if .Values.git_clone_init_container }}
+        image: nvidia/cuda:12.2.2-runtime-ubuntu22.04
+        command:
+        - /bin/sh
+        - -c
+        args:
+        - |
+          apt-get update
+          apt-get install -y python3.10 python3-pip 
+          cd /code/gpu-pod-exporter
+          pip install -r requirements.txt
+          python3 main.py
+        {{- else }}
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command: ["/bin/sh", "-c"]
+        args: ["python3 main.py"]
+        {{- end }}
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
+        env:
+        - name: BLOCK_ROOT_DIRECTORY
+          value: {{ .Values.block_root_directory }}
+        - name: PROMETHEUS_HOST
+          value: {{ .Values.prometheus_host }}
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: all
+        - name: NVIDIA_MIG_CONFIG_DEVICES
+          value: all
+        - name: NVIDIA_MIG_MONITOR_DEVICES
+          value: all
+        - name: NVIDIA_DISABLE_REQUIRE
+          value: "1"
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: LOG_LEVEL
+          value: {{.Values.log_level}}
+        {{- range $key, $value := .Values.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}       
+        ports:
+        - containerPort: 8000
+          name: metrics
+          protocol: TCP
+        securityContext:
+          privileged: true
+        volumeMounts:
+        {{- if .Values.git_clone_init_container }}
+        - name: code
+          mountPath: /code
+        {{- end }}
+        - name: block-pod-util-root
+          mountPath: {{ .Values.block_root_directory }}
+        - name: host-proc
+          mountPath: /host_proc
+        - name: containerd
+          mountPath: /run/containerd
+        - name: crictl-bin
+          mountPath: /crictl-bin/crictl
+        - name: crictl-config
+          mountPath: /etc/crictl.yaml  # Pod 내부 경로
+          readOnly: true
+      volumes:
+      {{- if .Values.git_clone_init_container }}
+      - name: code
+        emptyDir: {}
+      {{- end }}
+      - name: block-pod-util-root
+        hostPath:
+          path: {{ .Values.block_root_directory }}
+      - name: host-proc
+        hostPath:
+          path: /proc
+      - name: containerd
+        hostPath:
+          path: /run/containerd
+      - name: crictl-bin
+        hostPath:
+          path: /usr/bin/crictl
+      - name: crictl-config
+        hostPath:
+          path: /etc/crictl.yaml  #TODO: GPU-POD-EXPORTER 코드에셔 containerd socket을 설정하지 않도록 수정 필요
+          type: File

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-infra-alerter
+  namespace: {{ include "efkNamespace" . }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      k8s-app: prom-infra-alerter
+  template:
+    metadata:
+      labels:
+        k8s-app: prom-infra-alerter
+    spec:
+      {{- if .Values.affinity }}
+      affinity:
+        {{ toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+        {{ toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}-container
+        image: "{{ if .Values.image.registry }}{{ .Values.image.registry }}/{{ end }}{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        command: ["python"]
+        args: ["main.py"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"        
+        - name: ELASTIC_URL
+          value: {{ include "elasticHost" . | quote }}
+        - name: TLS_VERIFY
+          value: "{{ .Values.tlsVerify}}"
+        envFrom:
+        - secretRef:
+            name: {{ .Values.elasticCredentialSecretName }}
+        {{- if .Values.resources }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}

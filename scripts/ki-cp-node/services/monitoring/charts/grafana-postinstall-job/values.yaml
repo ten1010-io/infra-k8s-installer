@@ -1,0 +1,37 @@
+
+dryRun: false
+tlsVerify: false
+#grafanaHost: http://101.202.62.74:31857/
+grafanaHost: http://promstack-ops-grafana.promstack.svc.cluster.local/
+
+userCredential:
+  secretName: grafana-user-credential 
+  user: "aipub"
+  password: "mLu|1@=$GFEf31e6" #Password는 고정됨, 인증은 keycloak을 통함.  
+adminCredential:
+  secretName: grafana-admin-credential
+  user: grafana
+  password: "U7jq,#Hs92=z>7BK" #Password는 고정됨, 인증은 keycloak을 통함. 
+
+resources: {}
+  #requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+  #limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+k8sConfigPath: ""
+image:
+  repository: grafana-postinstall-job
+  tag: "1.0.0"
+  imagePullPolicy: Never
+
+affinity: {}
+
+nodeSelector: {}
+#  kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io
+tolerations: []
+#  - key: "node-role.kubernetes.io/control-plane"
+#    effect: "NoSchedule"
+#    operator: "Exists"

@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Chart.Name }}-sa
+  namespace:  {{ include "promstackNamespace" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Chart.Name }}-role
+  namespace:  {{ include "promstackNamespace" . }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets"]
+    verbs: ["create", "get", "list", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Chart.Name }}-rolebinding
+  namespace:  {{ include "promstackNamespace" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Chart.Name }}-sa
+  namespace:  {{ include "promstackNamespace" . }}
+roleRef:
+  kind: Role
+  name: {{ .Chart.Name }}-role
+  apiGroup: rbac.authorization.k8s.io

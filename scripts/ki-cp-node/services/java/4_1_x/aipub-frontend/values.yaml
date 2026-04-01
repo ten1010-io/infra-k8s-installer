@@ -1,0 +1,80 @@
+replicaCount: 1
+
+image:
+  repository: "" # ## HELM installer ##
+  pullPolicy: Never
+  tag: "" # ## HELM installer ##
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubVersion: "" # ## HELM installer ##
+  aipubTitle: "AI Pub"
+  aipubApiUrl: "" # ## HELM installer ##
+  aipubBaseHost: "" # ## HELM installer ##
+  aipubLogoutRedirectUrl: "" # ## HELM installer ##
+  aipubBrand: "aipub"
+  aipubUseMock: "false"
+  aipubDocsUrl: "" # ## HELM installer ##
+  aipubHarborUrl: "" # ## HELM installer ##
+  aipubMode: ops
+  aipubUseSso: "false"
+  aipubNodeUrl: "" # ## HELM installer ##
+  aipubNoticeUrl: "" # ## HELM installer ##
+  aipubReportUrl: "" # ## HELM installer ##
+  aipubKibanaUrl: "" # ## HELM installer ##
+  aipubStreamlitUrl: "" # ## HELM installer ##
+  aipubSshPortMin: "" # ## HELM installer ##
+  aipubSshPortMax: "" # ## HELM installer ##
+  aipubVolumes: '[{"type":"nfs","value":"nfs"},{"type":"storageclass","value":"ontap-nas"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html

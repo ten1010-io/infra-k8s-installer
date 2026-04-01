@@ -1,0 +1,71 @@
+
+ingress:
+  className: "lb1"
+  enabled: false
+  host: "report.cluster3.idc1.ten1010.io"
+  
+logLevel: "ERROR"
+#prometheusEndpoint: "http://101.202.0.8:30090"
+prometheusEndpoint: "http://kube-prometheus-stack-prometheus.promstack.svc.cluster.local:9090"
+enablePeriodUsageReport: true
+image:
+  repository: aipub-report
+  tag: "1.0.0"
+  imagePullPolicy: Never
+
+resources: {}
+  #limits:
+  #  cpu: 1
+  #  memory: 512Mi
+  #requests:
+  #  cpu: 1
+  #  memory: 512Mi
+
+affinity: {}
+#  requiredDuringSchedulingIgnoredDuringExecution:
+#    nodeSelectorTerms:
+#    - matchExpressions:
+#      - key: kubernetes.io/hostname
+#        operator: In
+#        values:
+#        - nodename
+
+nodeSelector:
+#  node-role.kubernetes.io/control-plane: ""
+#
+tolerations:
+#  - key: "node-role.kubernetes.io/control-plane"
+#    effect: "NoSchedule"
+#    operator: "Exists"
+
+
+storageProvisioning:
+  size: 5Gi
+  type: "static"          # Options: "static" or "dynamic"
+  accessMode: ReadWriteOnce  # ReadWriteOnce or ReadWriteMany
+  existingClaim: ""
+  dynamic:
+    storageClassName: ""  # 비워두면 default 사용
+  static:
+    type: "local"         # Options: "local" or "nfs"
+    local:
+      path: "/aipub/pv/aipub-report/cache"
+      nodeSelector:
+        - kubernetes.io/hostname: "cp1.example.com"
+    nfs:
+      server: "nfs.example.com"
+      export: "/exports/aipub/aipub-report"
+      subPath: "cache1"
+
+usageCache:
+  retentionPeriod: 100
+
+probes:
+  startup:
+    enabled: true
+    failureThreshold: 90  # 90회 * 10초 = 900초 (15분) 대기
+    periodSeconds: 10
+  liveness:
+    enabled: true
+  readiness:
+    enabled: true

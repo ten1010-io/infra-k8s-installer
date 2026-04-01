@@ -1,0 +1,96 @@
+
+
+oauth2proxy:
+  sslInsecureSkipVerify: true
+  skipDiscovery: true
+  insecureSkipIssuerVerification: true
+
+ingressClassName: lb1
+image:
+  registry: "ki-cp.ki.local:5001/aipub-4.3.0"
+  repository: "monitoring/oauth2-proxy"
+  tag: "v7.7.0"
+imagePullPolicy: IfNotPresent
+
+resources: {}
+  #requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+  #limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+providerCa:
+  type: private
+  caCrt: ""
+  defaultCaCrtConfigMap: keycloak-ca-cert
+
+kibana:
+  enabled: false
+  namespace: efk
+  upstreams:
+    insecureSkipTLSVerify: true
+    uri: https://101.202.62.74:30561
+  admin: 
+    host: kibana-admin.cluster9.idc1.ten1010.io
+    cookieSecure: true
+    serviceType: ClusterIP
+    authorizationHeader: QmFzaWMgWld4aGMzUnBZenAwWlc1RmJHRnpkR2xqTVVBPQ== #Basic auth header의 value값을 base64 인코딩함.    
+  user: 
+    host: kibana-user.cluster9.idc1.ten1010.io 
+    cookieSecure: true
+    serviceType: ClusterIP
+    authorizationHeader: QmFzaWMgWVdsd2RXSTZZV2x3ZFdJeFFBPT0=
+
+grafana:
+  enabled: false
+  namespace: promstack
+  upstreams:
+    insecureSkipTLSVerify: true
+    uri: http://promstack-ops-grafana.promstack.svc.cluster.local
+  admin: 
+    host: grafana-admin.cluster9.idc1.ten1010.io
+    cookieSecure: true
+    serviceType: ClusterIP
+    authorizationHeader: QmFzaWMgWjNKaFptRnVZVHBWTjJweExDTkljemt5UFhvK04wSkw=
+  user:
+    host: grafana-user.cluster9.idc1.ten1010.io
+    cookieSecure: true
+    serviceType: ClusterIP
+    authorizationHeader: QmFzaWMgWVdsd2RXSTZiVXgxZkRGQVBTUkhSa1ZtTXpGbE5nPT0=
+
+keycloak:
+  host: keycloak.cluster9.idc1.ten1010.io
+  realm: aipub
+  kibanaClient: kibana
+  grafanaClient: grafana
+  whitelistDomain: "*.cluster9.idc1.ten1010.io"
+
+affinity: {}
+
+nodeSelector: {}
+#  kubernetes.io/hostname: vnode1.pnode7.idc1.ten1010.io
+#
+tolerations: []
+#  - key: "node-role.kubernetes.io/control-plane"
+#    effect: "NoSchedule"
+#    operator: "Exists"
+
+# DNS 설정
+dnsPolicy: ClusterFirst
+dnsConfig:
+  enabled: false
+#  enabled: true
+#  nameservers:
+#    - "8.8.8.8"
+#    - "8.8.4.4"
+
+# Host Aliases 설정
+hostAliases:
+  enabled: false
+#  enabled: true
+#  aliases:
+#    - ip: "127.0.0.1"
+#      hostnames:
+#        - "localhost"
+#        - "local"

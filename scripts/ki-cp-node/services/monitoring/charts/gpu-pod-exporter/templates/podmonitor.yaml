@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: gpu-pod-monitor
+  namespace:  {{ include "promstackNamespace" . }}
+  labels:
+    release: {{ include "promstackRelease" . }}
+    {{- if .Values.podMonitor.additionalLabels }}
+    {{ toYaml .Values.podMonitor.additionalLabels | nindent 4 }}
+    {{- end }}
+spec:
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+  - interval: {{ .Values.podMonitor.interval }}
+    path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      monitor: gpu-pod-monitor                      

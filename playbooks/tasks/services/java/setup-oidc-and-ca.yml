@@ -1,0 +1,11 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Execute 5_oidc_and_ca.sh on control-plane nodes
+      shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/5_oidc_and_ca.sh --config {{ java_service_config_path }}"
+      when: k8s_cp | bool
+
+    - name: Execute 5_oidc_and_ca.sh on worker nodes
+      shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/5_oidc_and_ca.sh --config {{ java_service_config_path }}"
+      when: not (k8s_cp | bool)

@@ -1,0 +1,86 @@
+replicaCount: 1
+
+image:
+  repository: asdfry/aipub-monitoring
+  pullPolicy: IfNotPresent
+  tag: ""  # Overridden by parent values.yaml, fallback: Chart.appVersion (see templates/deployment.yaml:61)
+
+service:
+  type: ClusterIP
+  port: 8501
+
+# 리소스 설정
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+# 노드 스케줄링 설정
+nodeSelector:
+  node-role.kubernetes.io/control-plane: ""
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
+    operator: "Exists"
+
+affinity: {}
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: "node-role.kubernetes.io/control-plane"
+  #         operator: "Exists"
+
+# 환경 변수 설정
+env:
+  # 타임존
+  TIME_ZONE: "Asia/Seoul"
+  # 컨테이너 로컬 타임존 (datetime.fromtimestamp 등 기본 로컬 시간에 영향)
+  TZ: "Asia/Seoul"
+  # 테스트 모드 활성화 (true/false)
+  TEST_MODE: "false"
+  # 인증 방식 (none, keycloak, cookie)
+  AUTH_TYPE: "cookie"
+  # 메트릭스 백엔드 서비스 이름
+  METRICS_SERVICE_NAME: "vmauth-vmstack-vmauth"
+  # 메트릭스 백엔드 네임스페이스
+  METRICS_NAMESPACE: "aipub-promstack"
+  # 메트릭스 백엔드 포트
+  METRICS_PORT: "8427"
+  # CSV 다운로드 기능 활성화 (true/false)
+  CSV_DOWNLOAD_ENABLED: "true"
+  # IPMI 전력 센서 이름 (환경마다 다를 수 있음)
+  # TEN: PWR_SYSTEM, LGD: Pwr Consumption, SDI: Power Meter, Samsung Display: Sys Power
+  IPMI_POWER_SENSOR_NAME: "PWR_SYSTEM|Pwr Consumption|Power Meter|Sys Power"
+  # 차트 최소 STEP
+  MIN_STEP_SECONDS: "15"
+
+# Ingress 및 TLS 설정
+# AUTH_TYPE이 "keycloak"인 경우에만 자동으로 사용됨
+# 쿠키 인증 방식에서는 SSO Gateway를 사용하기 때문에 Ingress가 필요 없음
+ingress:
+  ingressClassName: "lb1"
+  host: ""
+  caCertificate: |
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+  tlsCertificate: |
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+  tlsPrivateKey: |
+    -----BEGIN PRIVATE KEY-----
+    -----END PRIVATE KEY-----
+
+# Streamlit 인증 설정
+# AUTH_TYPE이 "keycloak"인 경우에만 자동으로 사용됨
+auth:
+  # cookieSecret을 설정하지 않으면 자동으로 랜덤 값 생성됨
+  # cookieSecret: "custom-secret-here"
+  keycloak:
+    clientId: ""
+    clientSecret: ""
+    url: ""

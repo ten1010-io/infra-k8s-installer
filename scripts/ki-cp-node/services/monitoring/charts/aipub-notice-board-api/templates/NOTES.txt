@@ -1,0 +1,6 @@
+1. Watch all cluster members come up.
+kubectl get pods --namespace={{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ include "aipub-notice-board-api.fullname" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+
+2. Check AIPubJob controller logs.
+export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ include "aipub-notice-board-api.fullname" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+kubectl --namespace {{ .Release.Namespace }} logs $POD_NAME

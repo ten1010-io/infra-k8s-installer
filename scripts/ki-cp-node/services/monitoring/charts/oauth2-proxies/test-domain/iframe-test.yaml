@@ -1,0 +1,124 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iframe-test-deployment
+  labels:
+    app: iframe-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iframe-test
+  template:
+    metadata:
+      labels:
+        app: iframe-test
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html-content
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-content
+        configMap:
+          name: iframe-test-configmap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iframe-test-configmap
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>iframe Test</title>
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+            }
+            .iframe-container {
+                position: relative;
+                width: 100%;
+                height: 100vh;
+                overflow: hidden;
+            }
+            iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="iframe-container">
+            <iframe src="https://kibana-test.cluster9.idc1.ten1010.io/spaces/space_selector"
+                    title="Grafana Dashboard"
+                    allowfullscreen>
+            </iframe>
+        </div>
+    
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var iframe = document.querySelector('iframe');
+                iframe.addEventListener('load', function() {
+                    try {
+                        var iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+                        var sidemenu = iframeDocument.querySelector('.sidemenu');
+                        if (sidemenu) {
+                            sidemenu.style.display = 'none';
+                        }
+                    } catch (e) {
+                        console.error('Failed to access iframe content:', e);
+                    }
+                });
+            });
+        </script>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iframe-test-kibana
+spec:
+  selector:
+    app: iframe-test
+  type: NodePort  
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: iframe-test-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: lb1
+  rules:
+  - host: aipubops.cluster9.idc1.ten1010.io
+    http:
+      paths:
+      - path: /kibana/index.html
+        pathType: Prefix
+        backend:
+          service:
+            name: iframe-test-kibana
+            port: 
+              number: 80

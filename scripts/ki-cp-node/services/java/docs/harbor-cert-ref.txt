@@ -1,0 +1,19 @@
+cat /etc/os-release를 통해 해당 노드의 OS를 확인합니다.
+
+다음 경우에 따라 특정 경로에 해당 인증서를 위치시킵니다.
+
+- RHEL: /etc/pki/ca-trust/source/anchors/ 디렉토리
+- Ubuntu: /usr/local/share/ca-certificates/ 디렉토리
+
+다음 경우에 따라 명령어를 수행하여 인증서를 등록합니다.
+
+- RHEL: sudo update-ca-trust
+- Ubuntu: sudo update-ca-certificates
+sudo systemctl restart containerd 명령어를 통해 containerd를 재시작합니다.
+
+인증서 등록 확인
+openssl x509 -in /etc/pki/ca-trust/source/anchors/aip-ca.crt -noout -subject
+
+sudo grep -n "바로 위의 결과" /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem | head
+sudo grep -n "*.idc1.ten1010.io" /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem | head
+sudo grep -n "위에서 확인한 subject 일부" /etc/ssl/certs/ca-certificates.crt | head

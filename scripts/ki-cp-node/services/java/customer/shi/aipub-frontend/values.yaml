@@ -1,0 +1,80 @@
+replicaCount: 1
+
+image:
+  repository: aipub-web
+  pullPolicy: IfNotPresent
+  tag: "beta-2.0.15"
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: { }
+  name: ""
+
+podAnnotations: { }
+podLabels: { }
+
+podSecurityContext: { }
+
+securityContext: { }
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+
+resources: { }
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: { }
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+
+envFrom:
+  configMapSuffix: envs
+  secretSuffix: envs
+
+applicationYaml:
+  aipubVersion: "v4.0.0"
+  aipubTitle: "AI Pub"
+  aipubApiUrl: https://main.aipub.shi.io
+  aipubBaseHost: aipub.shi.io
+  aipubLogoutRedirectUrl: https://main.aipub.shi.io/welcome
+  aipubBrand: "aipub"
+  aipubUseMock: "false"
+  aipubDocsUrl: https://main.aipub.shi.io/docs
+  aipubHarborUrl: https://main-harbor.aipub.shi.io
+  aipubMode: ops
+  aipubUseSso: "false"
+  aipubNodeUrl: https://main.aipub.shi.io/alloc
+  aipubNoticeUrl: https://main.aipub.shi.io/notice
+  aipubReportUrl: https://main.aipub.shi.io/report
+  aipubKibanaUrl: https://main.aipub.shi.io/kibana
+  aipubStreamlitUrl: https://main.aipub.shi.io/streamlit
+  aipubSshPortMin: "1024"
+  aipubSshPortMax: "65535"
+  aipubVolumes: '[{"type":"nfs","value":"nfs"},{"type":"storageclass","value":"ontap-nas"}]'
+  appPrefix: AIPUB_
+  assetDir: /usr/share/nginx/html
