@@ -4,3 +4,5 @@ installer/
 README.md
 dry-run-output/
 docker-image-tools/
+# Jinja2 templates (not Helm templates)
+*.j2
