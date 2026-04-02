@@ -62,12 +62,12 @@ _victoriaMetricsLocal: &victoria_metrics_local
       kubernetes.io/hostname: *cp{{ i + 1 }}
 {% endfor %}
 
-_noticeBoardApiLocal: &notice_board_api_local
+_noticeBoardApiLocal: &aipub_notice_board_api_storage_local
   path: "{{ monitoring_notice_board_api_local_path }}"
   nodeSelector:
     - kubernetes.io/hostname: *cp1
 
-_reportLocal: &report_local
+_reportLocal: &aipub_report_storage_local
   path: "{{ monitoring_report_local_path }}"
   nodeSelector:
     - kubernetes.io/hostname: *cp1
@@ -86,12 +86,12 @@ _victoriaMetricsNfs: &victoria_metrics_nfs
     subPath: "vm_data{{ i + 1 }}"
 {% endfor %}
 
-_noticeBoardApiNfs: &notice_board_api_nfs
+_noticeBoardApiNfs: &aipub_notice_board_api_storage_nfs
   server: *_nfs_server
   export: "{{ monitoring_notice_board_api_nfs_export }}"
   subPath: "staticfiles1"
 
-_reportNfs: &report_nfs
+_reportNfs: &aipub_report_storage_nfs
   server: *_nfs_server
   export: "{{ monitoring_report_nfs_export }}"
   subPath: "cache1"
