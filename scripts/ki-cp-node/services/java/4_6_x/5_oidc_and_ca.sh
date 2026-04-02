@@ -147,7 +147,7 @@ execute_remote() {
 
     log_info "설정 파일을 원격 호스트로 복사 중..."
     scp $scp_opts "$CONFIG_FILE" ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
-    scp $scp_opts common.sh ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
+    scp $scp_opts "${SCRIPT_DIR}/common.sh" ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/
 
     log_info "Webhook Token 파일을 원격 호스트로 복사 중..."
     scp $scp_opts ${WEBHOOK_FILE} ${REMOTE_USER}@${REMOTE_HOST}:${remote_script_dir}/

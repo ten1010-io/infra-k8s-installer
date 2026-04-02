@@ -189,14 +189,19 @@ check_namespace() {
     local namespace=$1
     if ! kubectl get namespace "$namespace" &> /dev/null; then
         log_warn "Namespace '$namespace' does not exist"
-        read -p "Create namespace? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if [ "${SKIP_CONFIRMATION:-false}" = true ]; then
             kubectl create namespace "$namespace"
             log_success "Created namespace: $namespace"
         else
-            log_error "Namespace required for deployment"
-            return 1
+            read -p "Create namespace? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kubectl create namespace "$namespace"
+                log_success "Created namespace: $namespace"
+            else
+                log_error "Namespace required for deployment"
+                return 1
+            fi
         fi
     fi
 }
