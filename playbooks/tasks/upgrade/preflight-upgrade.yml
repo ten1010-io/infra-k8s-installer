@@ -1,0 +1,13 @@
+- hosts: localhost
+  gather_facts: false
+  any_errors_fatal: true
+  tasks:
+    - name: Validate variable["upgrade_node"]
+      fail:
+        msg: "Variable[\"upgrade_node\"] is not defined. Use -e upgrade_node=<inventory_hostname>"
+      when: upgrade_node is none
+
+    - name: "Validate upgrade_node[\"{{ upgrade_node }}\"] belongs to k8s_node group"
+      fail:
+        msg: "Node[\"{{ upgrade_node }}\"] must belong to k8s_node group"
+      when: upgrade_node not in groups['k8s_node']

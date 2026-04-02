@@ -1,0 +1,15 @@
+- import_playbook: tasks/check-ki-env-setup.yml
+
+- import_playbook: tasks/upgrade/preflight-upgrade.yml
+
+- import_playbook: tasks/setup-vars-file.yml
+
+- import_playbook: tasks/upgrade/push-k8s-images.yml
+
+- import_playbook: tasks/upgrade/drain-node.yml
+
+- import_playbook: tasks/upgrade/deploy-k8s-binaries.yml
+
+- import_playbook: tasks/upgrade/upgrade-node.yml
+
+- import_playbook: tasks/upgrade/uncordon-node.yml

@@ -79,7 +79,7 @@ deploy_helm_chart() {
 
     log_info "Deploying ${chart_name}..."
 
-    sudo helm upgrade -n ${NAMESPACE} ${chart_name} ./${chart_name}/ \
+    sudo helm upgrade -n ${NAMESPACE} ${chart_name} "${SCRIPT_DIR}/${chart_name}/" \
         --install \
         "$@"
 
@@ -206,8 +206,8 @@ check_command curl
 
 log_info "Retrieving secrets from Kubernetes..."
 
-sudo kubectl apply -f ../yaml/cluster-role.yaml
-sudo kubectl apply -f ../yaml/resource-manager-token.yaml
+sudo kubectl apply -f "${SCRIPT_DIR}/../yaml/cluster-role.yaml"
+sudo kubectl apply -f "${SCRIPT_DIR}/../yaml/resource-manager-token.yaml"
 
 export HARBOR_POSTGRES=$(get_k8s_secret "harbor-database" "${NAMESPACE}" "POSTGRES_PASSWORD")
 export K8S_MANAGER_TOKEN=$(get_k8s_secret "aipub-resources-manager-secret" "${NAMESPACE}" "token")
@@ -279,7 +279,7 @@ fi
 
 # DB Setup
 setup_aipub_db "AIPub DB" \
-    psql -U postgres -d postgres < ../sql/init.sql
+    psql -U postgres -d postgres < "${SCRIPT_DIR}/../sql/init.sql"
 
 # Backend API
 deploy_helm_chart "aipub-backend-api" \
@@ -322,17 +322,6 @@ deploy_helm_chart "aipub-backend-batch" \
   --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE}
 
 # Backend Adapter
-ADAPTER_VALUES_FILE=$(mktemp)
-cat > "${ADAPTER_VALUES_FILE}" <<EOF
-ingress:
-  hosts:
-    - host: "${AIPUB_HOST}"
-  tls:
-    - secretName: "${INGRESS_TLS_SECRET_NAME}"
-      hosts:
-        - "${AIPUB_HOST}"
-EOF
-
 deploy_helm_chart "aipub-backend-adapter" \
   --set image.repository="${ADAPTER_IMAGE}" \
   --set image.tag="${ADAPTER_TAG}" ${VOLUME_VALUE} \
@@ -343,9 +332,9 @@ deploy_helm_chart "aipub-backend-adapter" \
   --set applicationYaml.logging.level.orgSpringframeworkCloud="INFO" \
   --set applicationYaml.logging.level.orgSpringframeworkWeb="INFO" \
   --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE} \
-  -f "${ADAPTER_VALUES_FILE}"
-
-rm -f "${ADAPTER_VALUES_FILE}"
+  --set ingress.hosts[0].host="${AIPUB_HOST}" \
+  --set ingress.tls[0].secretName="${INGRESS_TLS_SECRET_NAME}" \
+  --set "ingress.tls[0].hosts[0]=${AIPUB_HOST}"
 
 # Frontend
 if [ "$AIPUB_VOLUMES_JSON" == "" ] || [ "$AIPUB_VOLUMES_JSON" == "null" ]; then
@@ -386,7 +375,7 @@ rm -f "${TEMP_VALUES_FILE}"
 
 # Usage DB Setup
 setup_aipub_db "Usage DB" \
-    psql -U postgres -d usages < ../sql/usages.sql
+    psql -U postgres -d usages < "${SCRIPT_DIR}/../sql/usages.sql"
 
 # Delete Harbor Library Project (if exists)
 HARBOR_ADMIN_PASSWORD=$(get_k8s_secret "harbor-core" "${NAMESPACE}" "HARBOR_ADMIN_PASSWORD")

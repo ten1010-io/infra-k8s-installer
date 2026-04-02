@@ -1,0 +1,13 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    vars_path_arg: "--vars-path {{ ki_tmp_vars_path }}"
+  tasks:
+    - when: inventory_hostname == upgrade_node
+      block:
+        - name: "Backup current k8s binaries ({{ k8s_version }})"
+          shell: "sudo {{ ki_env_scripts_path }}/k8s-node/k8s-upgrade/backup-k8s-binaries.sh {{ vars_path_arg }}"
+
+        - name: "Deploy new k8s binaries ({{ k8s_upgrade_target_version }})"
+          shell: "sudo {{ ki_env_scripts_path }}/k8s-node/k8s-upgrade/deploy-k8s-binaries.sh {{ vars_path_arg }}"

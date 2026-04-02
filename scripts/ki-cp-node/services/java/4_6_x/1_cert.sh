@@ -28,8 +28,26 @@ trap cleanup_on_error EXIT
 # 내부 클러스터 판별용 상위 도메인
 INTERNAL_DOMAIN="idc1.ten1010.io"
 
-# --config 인수 파싱 및 파일 확인
-parse_config_arg "$@"
+# --config / --yes 인수 파싱
+SKIP_CONFIRMATION=false
+CONFIG_FILE=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --config)
+            CONFIG_FILE="$2"
+            shift 2
+            ;;
+        --yes|-y)
+            SKIP_CONFIRMATION=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 check_config_file
 
 #==============================================================================
@@ -193,11 +211,15 @@ create_ca_external() {
 
     if [ -f "$ca_src" ]; then
         log_warn "CA certificate already exists"
-        read -p "Recreate CA? This will invalidate existing certificates (y/n): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            log_info "Skipping CA creation"
-            return 0
+        if [ "$SKIP_CONFIRMATION" = false ]; then
+            read -p "Recreate CA? This will invalidate existing certificates (y/n): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Skipping CA creation"
+                return 0
+            fi
+        else
+            log_info "Auto-yes: recreating CA"
         fi
     fi
 
@@ -264,14 +286,19 @@ create_tls_secret() {
     # Check if secret already exists
     if kubectl get secret -n "$namespace" "$secret_name" &> /dev/null; then
         log_warn "Secret '$secret_name' already exists in namespace '$namespace'"
-        read -p "Recreate secret? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            kubectl delete secret -n "$namespace" "$secret_name"
-            log_info "Deleted existing secret"
+        if [ "$SKIP_CONFIRMATION" = false ]; then
+            read -p "Recreate secret? (y/n): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                kubectl delete secret -n "$namespace" "$secret_name"
+                log_info "Deleted existing secret"
+            else
+                log_info "Skipping secret creation"
+                return 0
+            fi
         else
-            log_info "Skipping secret creation"
-            return 0
+            log_info "Auto-yes: recreating secret '$secret_name'"
+            kubectl delete secret -n "$namespace" "$secret_name"
         fi
     fi
 
@@ -313,13 +340,18 @@ create_all_tls_secrets() {
         log_info "Creating secret: ${secret_name}"
         if kubectl get secret -n aipub "$secret_name" &> /dev/null; then
             log_warn "Secret '${secret_name}' already exists"
-            read -p "Recreate secret? (y/n): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                kubectl delete secret -n aipub "$secret_name"
+            if [ "$SKIP_CONFIRMATION" = false ]; then
+                read -p "Recreate secret? (y/n): " -n 1 -r
+                echo
+                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                    kubectl delete secret -n aipub "$secret_name"
+                else
+                    log_info "Skipping ${secret_name}"
+                    continue
+                fi
             else
-                log_info "Skipping ${secret_name}"
-                continue
+                log_info "Auto-yes: recreating secret '${secret_name}'"
+                kubectl delete secret -n aipub "$secret_name"
             fi
         fi
 

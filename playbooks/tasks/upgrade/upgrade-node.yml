@@ -1,0 +1,11 @@
+- hosts: k8s_node
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    vars_path_arg: "--vars-path {{ ki_tmp_vars_path }}"
+    first_cp_arg: "{% if inventory_hostname == k8s_cp_nodes | first %}--first-cp{% endif %}"
+  tasks:
+    - when: inventory_hostname == upgrade_node
+      block:
+        - name: "Run kubeadm upgrade on node[\"{{ upgrade_node }}\"]"
+          shell: "sudo {{ ki_env_scripts_path }}/k8s-node/k8s-upgrade/upgrade-node.sh {{ vars_path_arg }} {{ first_cp_arg }}"

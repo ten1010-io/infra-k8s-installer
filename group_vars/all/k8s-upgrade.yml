@@ -1,0 +1,23 @@
+# Target k8s version to upgrade to
+k8s_upgrade_target_version: "v1.35.3"
+
+# Derived paths — change only k8s_upgrade_target_version above to switch version
+k8s_upgrade_bin_path: "{{ ki_env_bin_path }}/upgrade/{{ k8s_upgrade_target_version }}"
+k8s_upgrade_registry_data_path: "{{ k8s_upgrade_bin_path }}/registry-data"
+k8s_upgrade_registry_data_filename: "ki-cp-k8s-registry.tgz"
+k8s_upgrade_registry_var_path: "{{ ki_var_root_path }}/ki-cp-k8s-registry"
+
+# Binaries to backup and deploy
+k8s_upgrade_binaries:
+  - kubeadm
+  - kubelet
+  - kubectl
+
+# Binary install destination
+k8s_binary_install_path: "/usr/bin"
+
+# Backup path — uses current k8s_version so each version gets its own backup dir
+k8s_upgrade_binary_backup_path: "/usr/local/bin/k8s_{{ k8s_version }}_backup"
+
+# Node to upgrade — must be passed via -e upgrade_node=<inventory_hostname>
+upgrade_node: null

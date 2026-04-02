@@ -17,7 +17,7 @@ KUBE_APISERVER_MANIFEST="/etc/kubernetes/manifests/kube-apiserver.yaml"
 KUBE_WEBHOOK="/etc/kubernetes/webhook-token-auth.yaml"
 BACKUP_DIR="/etc/kubernetes/manifests/backups"
 BACKUP_FILE="${BACKUP_DIR}/kube-apiserver.yaml.$(date +%Y%m%d_%H%M%S).bak"
-WEBHOOK_FILE="../templates/webhook-token-auth.yaml"
+WEBHOOK_FILE="${SCRIPT_DIR}/../templates/webhook-token-auth.yaml"
 
 # yq
 YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
@@ -27,6 +27,7 @@ YQ_COMMAND="${KI_ENV_BIN_PATH}/yq"
 REMOTE_HOST=""
 REMOTE_USER="root"
 REMOTE_PORT="22"
+SKIP_CONFIRMATION=false
 
 # 명령줄 인자 파싱
 while [[ $# -gt 0 ]]; do
@@ -34,6 +35,10 @@ while [[ $# -gt 0 ]]; do
         --config)
             CONFIG_FILE="$2"
             shift 2
+            ;;
+        --yes|-y)
+            SKIP_CONFIRMATION=true
+            shift
             ;;
         --force)
             FORCE_UPDATE=true
@@ -239,7 +244,7 @@ check_oidc_configured() {
     if grep -q "authentication-token-webhook-config-file" "$KUBE_APISERVER_MANIFEST"; then
         log_warn "kube-apiserver.yaml에 Webhook 설정이 이미 존재합니다"
 
-        if [ "${FORCE_UPDATE:-false}" = true ]; then
+        if [ "${FORCE_UPDATE:-false}" = true ] || [ "$SKIP_CONFIRMATION" = true ]; then
             log_warn "강제 업데이트 활성화, Webhook 를 재설정합니다"
             return 1
         else
@@ -281,7 +286,7 @@ backup_apiserver_manifest() {
 
 copy_webhook() {
     log_step "webhook-token-auth 파일 복사 중..."
-    cp webhook-token-auth.yaml "$KUBE_WEBHOOK"
+    cp "${WEBHOOK_FILE}" "$KUBE_WEBHOOK"
 }
 
 remove_existing_oidc_config() {
@@ -393,8 +398,13 @@ install_ca_certificate() {
             # 사용자에게 컨테이너 런타임 재시작 여부 확인
             log_warn "컨테이너 런타임(containerd/docker)이 새 CA 인증서를 적용하려면 재시작이 필요할 수 있습니다"
             log_warn "재시작 시 실행 중인 컨테이너가 잠시 중단됩니다"
-            read -p "컨테이너 런타임을 재시작하시겠습니까? (yes/no) [no]: " -r
-            echo
+            if [ "$SKIP_CONFIRMATION" = false ]; then
+                read -p "컨테이너 런타임을 재시작하시겠습니까? (yes/no) [no]: " -r
+                echo
+            else
+                REPLY="yes"
+                log_info "Auto-yes: 컨테이너 런타임 재시작"
+            fi
             if [[ $REPLY =~ ^[Yy]([Ee][Ss])?$ ]]; then
                 log_info "컨테이너 런타임 재시작 중..."
 

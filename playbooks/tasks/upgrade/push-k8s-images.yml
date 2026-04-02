@@ -1,0 +1,10 @@
+- hosts: ki_cp_node
+  gather_facts: false
+  any_errors_fatal: true
+  vars:
+    vars_path_arg: "--vars-path {{ ki_tmp_vars_path }}"
+  tasks:
+    - when: inventory_hostname == groups['ki_cp_node'] | first
+      block:
+        - name: "Push k8s upgrade images to k8s-registry (target: {{ k8s_upgrade_target_version }})"
+          shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/k8s-upgrade/push-k8s-images.sh {{ vars_path_arg }}"

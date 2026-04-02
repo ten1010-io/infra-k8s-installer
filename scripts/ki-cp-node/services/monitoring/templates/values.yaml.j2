@@ -405,7 +405,7 @@ images:
   nodeExporter:
     registry: *image_registry
     repository: &node_exporter_image_repository "monitoring/node-exporter"
-    # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+    # Overrides the image tag whose default is {% raw %}{{ printf "v%s" .Chart.AppVersion }}{% endraw %}
     tag: &node_exporter_image_tag "v1.8.2"
     pullPolicy: &node_exporter_image_pull_policy "IfNotPresent"
     digest: &node_exporter_image_digest ""
@@ -1153,7 +1153,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "Master is dead"
               description: |
-                ({{ $labels.node }}) 마스터노드에 장애가 발생하였습니다. 
+                ({% raw %}{{ $labels.node }}{% endraw %}) 마스터노드에 장애가 발생하였습니다. 
           - alert: HighCPUUsageMaster
             expr: |
                (
@@ -1175,7 +1175,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High CPU usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 CPU 사용률이 80%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 CPU 사용률이 80%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 CPU 리소스를 확보해주세요 
           - alert: HighCPUUsageMaster
@@ -1199,7 +1199,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High CPU usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 CPU 사용률이 90%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 CPU 사용률이 90%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 CPU 리소스를 확보해주세요
           - alert: HighRAMUsageMaster
@@ -1223,7 +1223,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High RAM usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 메모리 사용률이 80%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 메모리 사용률이 80%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 메모리 리소스를 확보해주세요
           - alert: HighRAMUsageMaster
@@ -1247,7 +1247,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High RAM usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 메모리 사용률이 90%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 메모리 사용률이 90%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 메모리 리소스를 확보해주세요
           - alert: HighStorageUsageMaster
@@ -1271,7 +1271,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High Stroage usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 스토리지 사용률이 60%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 스토리지 사용률이 60%입니다.
                 사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 스토리지 리소스를 확보해주세요
           - alert: HighStorageUsageMaster
@@ -1295,7 +1295,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High Stroage usage detected"
               description: |
-                ({{ $labels.nodename }}) 마스터 노드의 스토리지 사용률이 70%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 마스터 노드의 스토리지 사용률이 70%입니다.
                 사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 스토리지 리소스를 확보해주세요                                                                          
         - name: aipub-worker
@@ -1314,7 +1314,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "Worker is dead"
               description: |
-                ({{ $labels.node }}) 워커노드에 장애가 발생하였습니다. 
+                ({% raw %}{{ $labels.node }}{% endraw %}) 워커노드에 장애가 발생하였습니다. 
           - alert: HighCPUUsageWorker
             expr: |
                (
@@ -1339,7 +1339,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High CPU usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 CPU 사용률이 80%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 CPU 사용률이 80%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 CPU 리소스를 확보해주세요 
           - alert: HighCPUUsageWorker
@@ -1366,7 +1366,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High CPU usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 CPU 사용률이 90%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 CPU 사용률이 90%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 CPU 리소스를 확보해주세요
           - alert: HighRAMUsageWorker
@@ -1391,7 +1391,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High RAM usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 메모리 사용률이 80%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 메모리 사용률이 80%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 메모리 리소스를 확보해주세요 
           - alert: HighRAMUsageWorker
@@ -1416,7 +1416,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High RAM usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 메모리 사용률이 90%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 메모리 사용률이 90%입니다.
                 사용률이 95% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 메모리 리소스를 확보해주세요              
           - alert: HighStorageUsageWorker
@@ -1441,7 +1441,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High Storage usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 스토리지 사용률이 60%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 스토리지 사용률이 60%입니다.
                 사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 스토리지 리소스를 확보해주세요 
           - alert: HighStorageUsageWorker
@@ -1466,7 +1466,7 @@ victoria-metrics-k8s-stack:
             annotations:
               summary: "High Storage usage detected"
               description: |
-                ({{ $labels.nodename }}) 워커 노드의 스토리지 사용률이 70%입니다.
+                ({% raw %}{{ $labels.nodename }}{% endraw %}) 워커 노드의 스토리지 사용률이 70%입니다.
                 사용률이 80% 초과 시 AIPub 사용이 불가할 수 있습니다.
                 스토리지 리소스를 확보해주세요
         #### Prometheus Rules for fractional GPU Allocation 
@@ -1987,7 +1987,7 @@ victoria-metrics-k8s-stack:
     image:
       registry: *image_registry
       repository: *node_exporter_image_repository
-      # Overrides the image tag whose default is {{ printf "v%s" .Chart.AppVersion }}
+      # Overrides the image tag whose default is {% raw %}{{ printf "v%s" .Chart.AppVersion }}{% endraw %}
       tag: *node_exporter_image_tag
       pullPolicy: *node_exporter_image_pull_policy
       digest: *node_exporter_image_digest
