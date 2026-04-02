@@ -26,3 +26,6 @@ build/
 
 /bin/
 /tmp/
+
+### Claude Code ###
+.claude/
