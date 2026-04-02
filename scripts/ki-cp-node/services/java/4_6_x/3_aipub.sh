@@ -322,6 +322,68 @@ deploy_helm_chart "aipub-backend-batch" \
   --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE}
 
 # Backend Adapter
+# --set ingress.hosts[0].host 는 배열 항목 전체를 교체하여 paths가 사라지므로
+# paths를 포함한 전체 ingress 구조를 임시 values 파일로 전달
+ADAPTER_INGRESS_VALUES=$(mktemp)
+cat > "${ADAPTER_INGRESS_VALUES}" << EOF
+ingress:
+  hosts:
+    - host: "${AIPUB_HOST}"
+      paths:
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /api
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /token
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /k8s
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /logout
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /sse
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-gateway
+              port:
+                number: 8080
+          path: /mcp
+          pathType: Prefix
+        - backend:
+            service:
+              name: aipub-backend-adapter
+              port:
+                number: 8080
+          path: /
+          pathType: Prefix
+  tls:
+    - secretName: "${INGRESS_TLS_SECRET_NAME}"
+      hosts:
+        - "${AIPUB_HOST}"
+EOF
 deploy_helm_chart "aipub-backend-adapter" \
   --set image.repository="${ADAPTER_IMAGE}" \
   --set image.tag="${ADAPTER_TAG}" ${VOLUME_VALUE} \
@@ -332,9 +394,8 @@ deploy_helm_chart "aipub-backend-adapter" \
   --set applicationYaml.logging.level.orgSpringframeworkCloud="INFO" \
   --set applicationYaml.logging.level.orgSpringframeworkWeb="INFO" \
   --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE} \
-  --set ingress.hosts[0].host="${AIPUB_HOST}" \
-  --set ingress.tls[0].secretName="${INGRESS_TLS_SECRET_NAME}" \
-  --set "ingress.tls[0].hosts[0]=${AIPUB_HOST}"
+  -f "${ADAPTER_INGRESS_VALUES}"
+rm -f "${ADAPTER_INGRESS_VALUES}"
 
 # Frontend
 if [ "$AIPUB_VOLUMES_JSON" == "" ] || [ "$AIPUB_VOLUMES_JSON" == "null" ]; then
