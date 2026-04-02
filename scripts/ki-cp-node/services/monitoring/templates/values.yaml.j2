@@ -238,8 +238,8 @@ apps:
       accessMode: &aipub_notice_board_api_storage_access_mode "ReadWriteMany"  # ReadWriteOnce or ReadWriteMany
       static:
         type: *_storage_static_type  # Options: "local" or "nfs"
-        local: *notice_board_api_local
-        nfs: *notice_board_api_nfs
+        local: *aipub_notice_board_api_storage_local
+        nfs: *aipub_notice_board_api_storage_nfs
       dynamic:
         storageClassName: *_storage_class_name
 
@@ -270,8 +270,8 @@ apps:
         storageClassName: *_storage_class_name
       static:
         type: *_storage_static_type  # Options: "local" or "nfs"
-        local: *report_local
-        nfs: *report_nfs
+        local: *aipub_report_storage_local
+        nfs: *aipub_report_storage_nfs
 
   aipubMonitoring:
     basePath: &aipub_monitoring_base_path "/streamlit"
