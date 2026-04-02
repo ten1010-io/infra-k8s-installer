@@ -323,62 +323,15 @@ deploy_helm_chart "aipub-backend-batch" \
 
 # Backend Adapter
 # --set ingress.hosts[0].host 는 배열 항목 전체를 교체하여 paths가 사라지므로
-# paths를 포함한 전체 ingress 구조를 임시 values 파일로 전달
+# chart values.yaml의 paths를 yq로 읽어 host/tls와 함께 임시 파일로 전달
 ADAPTER_INGRESS_VALUES=$(mktemp)
+ADAPTER_PATHS=$(${YQ_COMMAND} '.ingress.hosts[0].paths' "${SCRIPT_DIR}/aipub-backend-adapter/values.yaml" | sed 's/^/        /')
 cat > "${ADAPTER_INGRESS_VALUES}" << EOF
 ingress:
   hosts:
     - host: "${AIPUB_HOST}"
       paths:
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /api
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /token
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /k8s
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /logout
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /sse
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /mcp
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-adapter
-              port:
-                number: 8080
-          path: /
-          pathType: Prefix
+${ADAPTER_PATHS}
   tls:
     - secretName: "${INGRESS_TLS_SECRET_NAME}"
       hosts:
