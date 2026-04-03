@@ -19,7 +19,7 @@ java_aipub_host_prefix: "aipub"
 java_harbor_host_prefix: "{{ aipub_harbor_ingress_subdomain }}"
 
 java_api_profiles: "batch"
-java_api_flyway: false
+java_api_flyway: false  #DB 스키마 반영 유무
 java_ssh_port_min: "1024"
 java_ssh_port_max: "65535"
 java_volumes:
