@@ -3,5 +3,8 @@
   any_errors_fatal: true
   tasks:
     - name: Execute 3_aipub.sh
-      shell: "sudo {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/3_aipub.sh --config {{ java_service_config_path }} --skip-confirmation"
+      shell: >
+        sudo {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/3_aipub.sh
+        --config {{ java_service_config_path }} --skip-confirmation
+        >> {{ ki_env_scripts_path }}/ki-cp-node/services/java/{{ java_service_version }}/$(date +%Y%m%d)_install.log 2>&1
       when: inventory_hostname == k8s_cp_nodes | first
