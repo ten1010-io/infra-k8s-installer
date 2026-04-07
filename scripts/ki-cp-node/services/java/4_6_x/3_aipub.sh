@@ -67,6 +67,8 @@ confirm_deployment() {
     done
 }
 
+BACKUP_BASE_DIR="${SCRIPT_DIR}/backups/${NAMESPACE}/$(date +%Y%m%d_%H%M%S)"
+
 deploy_helm_chart() {
     local chart_name=$1
     shift
@@ -77,6 +79,23 @@ deploy_helm_chart() {
         return 0
     fi
 
+    local backup_dir="${BACKUP_BASE_DIR}/${chart_name}"
+    mkdir -p "${backup_dir}"
+
+    # 기존 릴리즈가 있으면 백업
+    local before_file="${backup_dir}/before.yaml"
+    local after_file="${backup_dir}/after.yaml"
+    local report_file="${backup_dir}/change-report.txt"
+    local is_upgrade=false
+
+    if sudo helm status -n ${NAMESPACE} ${chart_name} &> /dev/null; then
+        is_upgrade=true
+        log_info "Backing up existing release: ${chart_name}"
+        sudo helm get manifest -n ${NAMESPACE} ${chart_name} > "${before_file}"
+        sudo helm get values -n ${NAMESPACE} ${chart_name} > "${backup_dir}/values-before.yaml"
+        log_success "Backup saved: ${backup_dir}"
+    fi
+
     log_info "Deploying ${chart_name}..."
 
     sudo helm upgrade -n ${NAMESPACE} ${chart_name} "${SCRIPT_DIR}/${chart_name}/" \
@@ -85,6 +104,42 @@ deploy_helm_chart() {
 
     if [ $? -eq 0 ]; then
         log_info "${chart_name} deployed successfully"
+
+        # 배포 후 manifest 저장 및 변경점 보고서 생성
+        sudo helm get manifest -n ${NAMESPACE} ${chart_name} > "${after_file}"
+        sudo helm get values -n ${NAMESPACE} ${chart_name} > "${backup_dir}/values-after.yaml"
+
+        if [ "$is_upgrade" = true ]; then
+            {
+                echo "=============================================="
+                echo "  Change Report: ${chart_name}"
+                echo "  Date: $(date '+%Y-%m-%d %H:%M:%S')"
+                echo "  Namespace: ${NAMESPACE}"
+                echo "=============================================="
+                echo ""
+                echo "--- Manifest Changes ---"
+                diff -u "${before_file}" "${after_file}" || true
+                echo ""
+                echo "--- Values Changes ---"
+                diff -u "${backup_dir}/values-before.yaml" "${backup_dir}/values-after.yaml" || true
+            } > "${report_file}"
+            log_info "Change report: ${report_file}"
+        else
+            {
+                echo "=============================================="
+                echo "  Change Report: ${chart_name}"
+                echo "  Date: $(date '+%Y-%m-%d %H:%M:%S')"
+                echo "  Namespace: ${NAMESPACE}"
+                echo "  Type: 신규 설치"
+                echo "=============================================="
+                echo ""
+                echo "신규 설치 - 이전 릴리즈 없음"
+                echo ""
+                echo "--- Installed Manifest ---"
+                cat "${after_file}"
+            } > "${report_file}"
+            log_info "Change report: ${report_file}"
+        fi
     else
         log_error "Failed to deploy ${chart_name}"
         exit 1
@@ -322,33 +377,18 @@ deploy_helm_chart "aipub-backend-batch" \
   --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE}
 
 # Backend Adapter
-# --set ingress.hosts[0].host 는 배열 항목 전체를 교체하여 paths가 사라지므로
-# chart values.yaml의 paths를 yq로 읽어 host/tls와 함께 임시 파일로 전달
-ADAPTER_INGRESS_VALUES=$(mktemp)
-ADAPTER_PATHS=$(${YQ_COMMAND} '.ingress.hosts[0].paths' "${SCRIPT_DIR}/aipub-backend-adapter/values.yaml" | sed 's/^/        /')
-cat > "${ADAPTER_INGRESS_VALUES}" << EOF
-ingress:
-  hosts:
-    - host: "${AIPUB_HOST}"
-      paths:
-${ADAPTER_PATHS}
-  tls:
-    - secretName: "${INGRESS_TLS_SECRET_NAME}"
-      hosts:
-        - "${AIPUB_HOST}"
-EOF
 deploy_helm_chart "aipub-backend-adapter" \
   --set image.repository="${ADAPTER_IMAGE}" \
   --set image.tag="${ADAPTER_TAG}" ${VOLUME_VALUE} \
+  --set ingress.host="${AIPUB_HOST}" \
+  --set ingress.tlsSecretName="${INGRESS_TLS_SECRET_NAME}" \
   --set applicationYaml.app.cookie.domain="${AIPUB_COOKIE_DOMAIN}" \
   --set applicationYaml.app.proxy.kibana.admin.password="${ES_ADMIN_PASSWORD}" \
   --set applicationYaml.app.redirect.indexUrl="${AIPUB_INDEX_URL}" \
   --set applicationYaml.cors.allowedOrigin="${AIPUB_URL}" \
   --set applicationYaml.logging.level.orgSpringframeworkCloud="INFO" \
   --set applicationYaml.logging.level.orgSpringframeworkWeb="INFO" \
-  --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE} \
-  -f "${ADAPTER_INGRESS_VALUES}"
-rm -f "${ADAPTER_INGRESS_VALUES}"
+  --set agent.datadog="${DATA_DOG_ENABLED}" ${DATA_DOG_VALUE}
 
 # Frontend
 if [ "$AIPUB_VOLUMES_JSON" == "" ] || [ "$AIPUB_VOLUMES_JSON" == "null" ]; then

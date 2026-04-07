@@ -29,64 +29,36 @@ service:
 ingress:
   enabled: true
   className: "lb1"
+  host: "" # ## HELM installer ##
+  tlsSecretName: "" # ## HELM installer ##
   annotations:
     nginx.ingress.kubernetes.io/proxy-buffer-size: 16k
-  hosts:
-    - host: "" # ## HELM installer ##
-      paths:
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /api
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /token
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /k8s
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /logout
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /sse
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-gateway
-              port:
-                number: 8080
-          path: /mcp
-          pathType: Prefix
-        - backend:
-            service:
-              name: aipub-backend-adapter
-              port:
-                number: 8080
-          path: /
-          pathType: Prefix
-  tls:
-    - secretName: "" # ## HELM installer ##
-      hosts:
-        - "" # ## HELM installer ##
+    nginx.ingress.kubernetes.io/proxy-body-size: 500m
+  paths:
+    - path: /api
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /token
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /k8s
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /oauth2
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /logout
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /sse
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /mcp
+      serviceName: aipub-backend-gateway
+      servicePort: 8080
+    - path: /
+      serviceName: aipub-backend-adapter
+      servicePort: 8080
 
 resources: { }
 
