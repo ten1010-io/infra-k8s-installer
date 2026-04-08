@@ -1,35 +1,65 @@
 pipeline {
     agent any
 
+    environment {
+        REPO = "git@github.com:ten1010-io/aipub-ten-cluster-CD.git"
+        BRANCH = "main"
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Clone Repo') {
             steps {
-                echo 'Step 1: GitHub로부터 코드를 성공적으로 가져왔습니다.'
+                sh '''
+                rm -rf repo
+                git clone $REPO repo
+                '''
             }
         }
-        stage('Build') {
+
+        stage('Pull Latest') {
             steps {
-                echo 'Step 2: 빌드 공정을 시작합니다. (현재는 샘플 호출만 수행)'
+                sh '''
+                cd repo
+                git pull origin $BRANCH
+                '''
             }
         }
-        stage('Test') {
+
+        stage('Modify File') {
             steps {
-                echo 'Step 3: 유닛 테스트를 수행 중입니다...'
+                sh '''
+                cd repo
+                mkdir -p infra
+                echo "test git" > infra/test.txt
+                '''
             }
         }
-        stage('Deploy') {
+
+        stage('Commit & Push') {
             steps {
-                echo 'Step 4: 배포 서버로 전송을 완료했습니다!'
+                sh '''
+                cd repo
+
+                git config user.email "jenkins@local"
+                git config user.name "jenkins"
+
+                git add infra/test.txt
+
+                # 변경 없을 때 에러 방지
+                git commit -m "test: add test.txt from jenkins" || echo "no changes"
+
+                git push origin $BRANCH
+                '''
             }
         }
     }
-    
+
     post {
         success {
-            echo '🎉 모든 빌드 절차가 성공적으로 끝났습니다!'
+            echo '🎉 Git push까지 정상 완료!'
         }
         failure {
-            echo '❌ 빌드 중 에러가 발생했습니다. 로그를 확인하세요.'
+            echo '❌ 실패 - SSH / 권한 / known_hosts 확인 필요'
         }
     }
 }
