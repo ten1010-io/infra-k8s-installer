@@ -4,7 +4,7 @@ pipeline {
     environment {
         REPO = "git@github.com:ten1010-io/aipub-ten-cluster-CD.git"
         BRANCH = "main"
-        REMOTE_SERVER = "vnode2.pnode13.idc1.ten1010.io"
+        REMOTE_SERVER = "cluster7"
     }
 
     stages {
