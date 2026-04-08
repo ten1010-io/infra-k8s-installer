@@ -4,6 +4,7 @@ pipeline {
     environment {
         REPO = "git@github.com:ten1010-io/aipub-ten-cluster-CD.git"
         BRANCH = "main"
+        REMOTE_SERVER = "vnode2.pnode13.idc1.ten1010.io"
     }
 
     stages {
@@ -16,50 +17,42 @@ pipeline {
             }
         }
 
-        stage('Pull Latest') {
+        stage('Modify & Push') {
             steps {
                 sh '''
                 cd repo
                 git pull origin $BRANCH
-                '''
-            }
-        }
-
-        stage('Modify File') {
-            steps {
-                sh '''
-                cd repo
                 mkdir -p infra
-                echo "test git" > infra/test.txt
-                '''
-            }
-        }
-
-        stage('Commit & Push') {
-            steps {
-                sh '''
-                cd repo
-
+                echo "test git $(date)" > infra/test.txt
+                
                 git config user.email "jenkins@local"
                 git config user.name "jenkins"
-
                 git add infra/test.txt
-
-                # 변경 없을 때 에러 방지
-                git commit -m "test: add test.txt from jenkins" || echo "no changes"
-
+                git commit -m "test: update test.txt from jenkins" || echo "no changes"
                 git push origin $BRANCH
                 '''
+            }
+        }
+
+        // 마지막 단계: SSH 접속 후 kubectl 실행
+        stage('Remote Kubectl Check') {
+            steps {
+                // 'vnode2-ssh-key'는 Jenkins Credentials에 등록된 SSH User with private key의 ID여야 합니다.
+                sshagent(['vnode2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no root@${REMOTE_SERVER} "kubectl get po -n aipub"
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo '🎉 Git push까지 정상 완료!'
+            echo '🎉 Git push 및 원격 배포 확인 완료!'
         }
         failure {
-            echo '❌ 실패 - SSH / 권한 / known_hosts 확인 필요'
+            echo '❌ 실패 - SSH / 권한 / Credentials ID 확인 필요'
         }
     }
 }
