@@ -34,25 +34,18 @@ pipeline {
             }
         }
 
-        // 마지막 단계: SSH 접속 후 kubectl 실행
         stage('Remote Kubectl Check') {
             steps {
-                // 'vnode2-ssh-key'는 Jenkins Credentials에 등록된 SSH User with private key의 ID여야 합니다.
-                sshagent(['vnode2-ssh-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no root@${REMOTE_SERVER} "kubectl get po -n aipub"
-                    """
-                }
+                // 이미 키가 등록되어 있으므로 직접 ssh 호출
+                sh """
+                ssh -o StrictHostKeyChecking=no root@${REMOTE_SERVER} "kubectl get po -n aipub"
+                """
             }
         }
     }
 
     post {
-        success {
-            echo '🎉 Git push 및 원격 배포 확인 완료!'
-        }
-        failure {
-            echo '❌ 실패 - SSH / 권한 / Credentials ID 확인 필요'
-        }
+        success { echo '🎉 모든 작업 완료!' }
+        failure { echo '❌ SSH 연결 실패 - 키 마운트 여부 확인 필요' }
     }
 }
