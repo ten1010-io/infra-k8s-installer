@@ -38,7 +38,30 @@ pipeline {
             steps {
                 // 이미 키가 등록되어 있으므로 직접 ssh 호출
                 sh """
-                ssh -o StrictHostKeyChecking=no jenkins@${REMOTE_SERVER} "sudo kubectl get po -n aipub"
+                echo "cluster 1"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster1 "sudo kubectl get po -n aipub"
+
+                echo "cluster 4"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster4 "sudo kubectl get po -n aipub"
+
+                echo "cluster 6"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster6 "sudo kubectl get po -n aipub"
+
+                echo "cluster 7"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster7 "sudo kubectl get po -n aipub"
+
+                echo "cluster 8"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster8 "sudo kubectl get po -n aipub"
+
+                echo "cluster 9"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster9 "sudo kubectl get po -n aipub"
+
+                echo "cluster 10"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster10 "sudo kubectl get po -n aipub"
+
+                echo "cluster 11"
+                ssh -o StrictHostKeyChecking=no jenkins@cluster11 "sudo kubectl get po -n aipub"
+                
                 """
             }
         }
